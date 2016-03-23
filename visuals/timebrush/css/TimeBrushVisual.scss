@@ -1,0 +1,11 @@
+@import "./Base";
+@import "../../../base/powerbi/css/main";
+
+svg {
+    @extend .regularFont;
+    @extend .smallFontSize;
+}
+
+.bars {
+  fill: $dataColor1;
+}
