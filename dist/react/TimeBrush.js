@@ -1,1 +1,426 @@
-!function(t,e){if("object"==typeof exports&&"object"==typeof module)module.exports=e(require("jQuery"),require("React"),require("ReactDOM"),require("_"),require("d3"));else if("function"==typeof define&&define.amd)define(["jQuery","React","ReactDOM","_","d3"],e);else{var i="object"==typeof exports?e(require("jQuery"),require("React"),require("ReactDOM"),require("_"),require("d3")):e(t.jQuery,t.React,t.ReactDOM,t._,t.d3);for(var n in i)("object"==typeof exports?exports:t)[n]=i[n]}}(this,function(t,e,i,n,r){return function(t){function e(n){if(i[n])return i[n].exports;var r=i[n]={exports:{},id:n,loaded:!1};return t[n].call(r.exports,r,r.exports,e),r.loaded=!0,r.exports}var i={};return e.m=t,e.c=i,e.p="",e(0)}([function(t,e,i){"use strict";var n=this&&this.__extends||function(t,e){function i(){this.constructor=t}for(var n in e)e.hasOwnProperty(n)&&(t[n]=e[n]);t.prototype=null===e?Object.create(e):(i.prototype=e.prototype,new i)},r=i(4),s=i(5),o=i(1),a=i(3),h=function(t){function e(){t.apply(this,arguments),this.props={}}return n(e,t),e.prototype.componentDidMount=function(){var t=this;this.node=s.findDOMNode(this),this.timeBrush=new a.TimeBrush(o(this.node),{width:this.props.width,height:this.props.height}),+this.timeBrush.events.on("rangeSelected",function(e){t.props&&t.props.onSelectedRangeChanged(e)}),this.renderContent()},e.prototype.componentWillReceiveProps=function(t){this.renderContent(t)},e.prototype.render=function(){return r.createElement("div",{style:{width:"100%",height:"100%"}})},e.prototype.renderContent=function(t){t=t||this.props,this.timeBrush.data=t.data||[],this.timeBrush.selectedRange=t.selectedRange||null},e}(r.Component);e.TimeBrush=h},function(e,i){e.exports=t},function(t,e){"use strict";var i=function(){function t(){this.listeners={}}return t.prototype.on=function(t,e){var i=this,n=this.listeners[t]=this.listeners[t]||[];return n.push(e),{destroy:function(){i.off(t,e)}}},t.prototype.off=function(t,e){var i=this.listeners[t];if(i){var n=i.indexOf(e);n>=0&&i.splice(n,1)}},t.prototype.raiseEvent=function(t){for(var e=this,i=[],n=1;n<arguments.length;n++)i[n-1]=arguments[n];var r=this.listeners[t];r&&r.forEach(function(t){t.apply(e,i)})},t}();Object.defineProperty(e,"__esModule",{value:!0}),e["default"]=i},function(t,e,i){"use strict";var n=i(2),r=i(1),s=i(6),o=i(7),a=1e3,h=100,u=function(){function t(t,e){this._dimensions={width:500,height:500},this._eventEmitter=new n["default"],this.element=t,this.x=o.time.scale(),this.y=o.scale.linear(),this.buildTimeScale(),this.dimensions?this.dimensions=e:this.resizeElements()}return Object.defineProperty(t.prototype,"data",{get:function(){return this._data},set:function(t){this._data=t||[],this.x.domain(o.extent(this._data.map(function(t){return t.date}))),this.y.domain([0,o.max(this._data.map(function(t){return+t.value}))]),this.resizeElements()},enumerable:!0,configurable:!0}),Object.defineProperty(t.prototype,"events",{get:function(){return this._eventEmitter},enumerable:!0,configurable:!0}),Object.defineProperty(t.prototype,"dimensions",{get:function(){return this._dimensions},set:function(t){r.extend(this._dimensions,t),this.resizeElements(),this._range&&(this.brush.extent(this._range),this.brush(o.select(this.element.find(".brush")[0])))},enumerable:!0,configurable:!0}),Object.defineProperty(t.prototype,"selectedRange",{set:function(t){function e(){var e=this;return t&&this._range||!t&&!this._range?t&&this._range?t.length!==this._range.length?!0:t.some(function(t,i){return t.getTime()!==e._range[i].getTime()}):!1:!0}function i(){this.brush.extent(t),this.brush(o.select(this.element.find(".brush")[0]))}e.bind(this)()&&(this._range=t,t&&t.length&&i.bind(this)())},enumerable:!0,configurable:!0}),t.prototype.buildTimeScale=function(){var t=this;this.svg=o.select(this.element[0]).append("svg"),this.clip=this.svg.append("defs").append("clipPath").attr("id","clip").append("rect"),this.context=this.svg.append("g").attr("class","context"),this.bars=this.context.append("g").attr("class","bars"),this.xAxis=this.context.append("g").attr("class","x axis");var e=s.debounce(function(){var e=t.brush.empty()?[]:t.brush.extent(),i=[];if(e&&e.length){var n,r;t.data.forEach(function(t){n||(n=t),r||(r=t),Math.abs(e[0].getTime()-t.date.getTime())<Math.abs(e[0].getTime()-n.date.getTime())&&(n=t),Math.abs(e[1].getTime()-t.date.getTime())<Math.abs(e[1].getTime()-r.date.getTime())&&(r=t)}),i=[n,r]}t.events.raiseEvent("rangeSelected",e,i)},a);this.brush=o.svg.brush().on("brush",e)},t.prototype.resizeElements=function(){var t=this,e={top:0,right:10,bottom:20,left:10},i=this._dimensions.width-e.left-e.right,n=this._dimensions.height-e.top-e.bottom;if(this.x.range([0,i]),this.y.range([n,0]),this.bars&&this._data){var r=this.bars.selectAll("rect").data(this._data);r.enter().append("rect"),r.attr("transform",function(e,i){var r=t.y(0)-t.y(e.value),s=t.x(e.date)||0;return"translate("+s+","+(n-r)+")"}).attr("width",2).attr("height",function(e){return Math.max(0,t.y(0)-t.y(e.value))}),r.exit().remove()}this.svg.attr("width",i+e.left+e.right).attr("height",n+e.top+e.bottom),this.clip.attr("width",i).attr("height",n),this.xAxis.attr("transform","translate(0,"+n+")").call(o.svg.axis().scale(this.x).orient("bottom").ticks(this.dimensions.width/h)),this.context.attr("transform","translate("+e.left+","+e.top+")"),this.brush.x(this.x),o.selectAll(this.element.find(".x.brush").toArray()).remove(),this.brushEle=this.context.append("g").attr("class","x brush").call(this.brush).selectAll("rect").attr("height",n+7).attr("y",-6),this.brushGrip=o.select(this.element.find(".x.brush")[0]).selectAll(".resize").append("rect").attr("x",-3).attr("rx",2).attr("ry",2).attr("y",n/2-15).attr("width",6).attr("fill","lightgray").attr("height",30)},t}();e.TimeBrush=u},function(t,i){t.exports=e},function(t,e){t.exports=i},function(t,e){t.exports=n},function(t,e){t.exports=r}])});
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory(require("jQuery"), require("React"), require("ReactDOM"), require("_"), require("d3"));
+	else if(typeof define === 'function' && define.amd)
+		define(["jQuery", "React", "ReactDOM", "_", "d3"], factory);
+	else {
+		var a = typeof exports === 'object' ? factory(require("jQuery"), require("React"), require("ReactDOM"), require("_"), require("d3")) : factory(root["jQuery"], root["React"], root["ReactDOM"], root["_"], root["d3"]);
+		for(var i in a) (typeof exports === 'object' ? exports : root)[i] = a[i];
+	}
+})(this, function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_EXTERNAL_MODULE_4__, __WEBPACK_EXTERNAL_MODULE_5__, __WEBPACK_EXTERNAL_MODULE_6__, __WEBPACK_EXTERNAL_MODULE_7__) {
+return /******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId])
+/******/ 			return installedModules[moduleId].exports;
+
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			exports: {},
+/******/ 			id: moduleId,
+/******/ 			loaded: false
+/******/ 		};
+
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+
+/******/ 		// Flag the module as loaded
+/******/ 		module.loaded = true;
+
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+
+
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(0);
+/******/ })
+/************************************************************************/
+/******/ ([
+/* 0 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var React = __webpack_require__(4);
+	var ReactDOM = __webpack_require__(5);
+	var $ = __webpack_require__(1);
+	var TimeBrush_1 = __webpack_require__(3);
+	;
+	/**
+	 * Thin wrapper around TimeBrush
+	 */
+	var TimeBrush = (function (_super) {
+	    __extends(TimeBrush, _super);
+	    function TimeBrush() {
+	        _super.apply(this, arguments);
+	        this.props = {};
+	    }
+	    TimeBrush.prototype.componentDidMount = function () {
+	        var _this = this;
+	        this.node = ReactDOM.findDOMNode(this);
+	        this.timeBrush = new TimeBrush_1.TimeBrush($(this.node), { width: this.props.width, height: this.props.height });
+	        +this.timeBrush.events.on("rangeSelected", function (range) {
+	            if (_this.props) {
+	                _this.props.onSelectedRangeChanged(range);
+	            }
+	        });
+	        this.renderContent();
+	    };
+	    TimeBrush.prototype.componentWillReceiveProps = function (newProps) {
+	        this.renderContent(newProps);
+	    };
+	    /**
+	     * Renders this component
+	     */
+	    TimeBrush.prototype.render = function () {
+	        return React.createElement("div", {style: { width: "100%", height: "100%" }});
+	    };
+	    TimeBrush.prototype.renderContent = function (props) {
+	        // if called from `componentWillReceiveProps`, then we use the new
+	        // props, otherwise use what we already have.
+	        props = props || this.props;
+	        this.timeBrush.data = props.data || [];
+	        this.timeBrush.selectedRange = props.selectedRange || null;
+	    };
+	    return TimeBrush;
+	}(React.Component));
+	exports.TimeBrush = TimeBrush;
+
+
+/***/ },
+/* 1 */
+/***/ function(module, exports) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_1__;
+
+/***/ },
+/* 2 */
+/***/ function(module, exports) {
+
+	"use strict";
+	/**
+	 * A mixin that adds support for event emitting
+	 */
+	var EventEmitter = (function () {
+	    function EventEmitter() {
+	        this.listeners = {};
+	    }
+	    /**
+	     * Adds an event listener for the given event
+	     */
+	    EventEmitter.prototype.on = function (name, handler) {
+	        var _this = this;
+	        var listeners = this.listeners[name] = this.listeners[name] || [];
+	        listeners.push(handler);
+	        return {
+	            destroy: function () {
+	                _this.off(name, handler);
+	            }
+	        };
+	    };
+	    /**
+	     * Removes an event listener for the given event
+	     */
+	    EventEmitter.prototype.off = function (name, handler) {
+	        var listeners = this.listeners[name];
+	        if (listeners) {
+	            var idx = listeners.indexOf(handler);
+	            if (idx >= 0) {
+	                listeners.splice(idx, 1);
+	            }
+	        }
+	    };
+	    /**
+	     * Raises the given event
+	     */
+	    /*protected*/ EventEmitter.prototype.raiseEvent = function (name) {
+	        var _this = this;
+	        var args = [];
+	        for (var _i = 1; _i < arguments.length; _i++) {
+	            args[_i - 1] = arguments[_i];
+	        }
+	        var listeners = this.listeners[name];
+	        if (listeners) {
+	            listeners.forEach(function (l) {
+	                l.apply(_this, args);
+	            });
+	        }
+	    };
+	    return EventEmitter;
+	}());
+	Object.defineProperty(exports, "__esModule", { value: true });
+	exports.default = EventEmitter;
+
+
+/***/ },
+/* 3 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var EventEmitter_1 = __webpack_require__(2);
+	var $ = __webpack_require__(1);
+	var _ = __webpack_require__(6);
+	var d3 = __webpack_require__(7);
+	var DEBOUNCE_TIME = 1000;
+	var TICK_WIDTH = 100;
+	/**
+	* Represents a timebrush
+	*/
+	/* @Mixin(EventEmitter)*/
+	var TimeBrush = (function () {
+	    /**
+	     * Constructor for the timebrush
+	     */
+	    function TimeBrush(element, dimensions) {
+	        this._dimensions = { width: 500, height: 500 };
+	        this._eventEmitter = new EventEmitter_1.default();
+	        this.element = element;
+	        this.x = d3.time.scale();
+	        this.y = d3.scale.linear();
+	        this.buildTimeScale();
+	        if (!this.dimensions) {
+	            this.resizeElements();
+	        }
+	        else {
+	            this.dimensions = dimensions;
+	        }
+	    }
+	    Object.defineProperty(TimeBrush.prototype, "data", {
+	        /**
+	         * Returns the data contained in this timebrush
+	         */
+	        get: function () {
+	            return this._data;
+	        },
+	        /**
+	         * Setter for the data
+	         */
+	        set: function (data) {
+	            this._data = data || [];
+	            this.x.domain(d3.extent(this._data.map(function (d) { return d.date; })));
+	            this.y.domain([0, d3.max(this._data.map(function (d) { return +d.value; }))]);
+	            this.resizeElements();
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    Object.defineProperty(TimeBrush.prototype, "events", {
+	        /**
+	         * Gets an event emitter by which events can be listened to
+	         * Note: Would be nice if we could mixin EventEmitter
+	         */
+	        get: function () {
+	            return this._eventEmitter;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    Object.defineProperty(TimeBrush.prototype, "dimensions", {
+	        /**
+	         * Gets the dimensions of this timebrush
+	         */
+	        get: function () {
+	            return this._dimensions;
+	        },
+	        /**
+	         * Sets the dimensions of this timebrush
+	         */
+	        set: function (value) {
+	            $.extend(this._dimensions, value);
+	            this.resizeElements();
+	            if (this._range) {
+	                this.brush.extent(this._range);
+	                this.brush(d3.select(this.element.find(".brush")[0]));
+	            }
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    Object.defineProperty(TimeBrush.prototype, "selectedRange", {
+	        /**
+	         * Sets the currently selected range of dates
+	         */
+	        set: function (range) {
+	            function selectedRangeChanged() {
+	                var _this = this;
+	                // One is set, other is unset
+	                if ((!range || !this._range) && (range || this._range)) {
+	                    return true;
+	                }
+	                if (range && this._range) {
+	                    // Length of Array Changed
+	                    if (range.length !== this._range.length) {
+	                        return true;
+	                    }
+	                    else {
+	                        // Check each date
+	                        return range.some(function (v, i) {
+	                            return v.getTime() !== _this._range[i].getTime();
+	                        });
+	                    }
+	                }
+	                return false;
+	            }
+	            function redrawRange() {
+	                this.brush.extent(range);
+	                this.brush(d3.select(this.element.find(".brush")[0]));
+	            }
+	            if (selectedRangeChanged.bind(this)()) {
+	                this._range = range;
+	                if (range && range.length) {
+	                    redrawRange.bind(this)();
+	                }
+	            }
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    /**
+	     * Builds the initial timescale
+	     */
+	    TimeBrush.prototype.buildTimeScale = function () {
+	        var _this = this;
+	        this.svg = d3.select(this.element[0]).append("svg");
+	        this.clip = this.svg.append("defs").append("clipPath")
+	            .attr("id", "clip")
+	            .append("rect");
+	        this.context = this.svg.append("g")
+	            .attr("class", "context");
+	        this.bars = this.context.append("g")
+	            .attr("class", "bars");
+	        this.xAxis = this.context.append("g")
+	            .attr("class", "x axis");
+	        var brushed = _.debounce(function () {
+	            var dateRange = _this.brush.empty() ? [] : _this.brush.extent();
+	            var items = [];
+	            if (dateRange && dateRange.length) {
+	                var lowerItem_1;
+	                var upperItem_1;
+	                _this.data.forEach(function (item) {
+	                    if (!lowerItem_1) {
+	                        lowerItem_1 = item;
+	                    }
+	                    if (!upperItem_1) {
+	                        upperItem_1 = item;
+	                    }
+	                    if (Math.abs(dateRange[0].getTime() - item.date.getTime()) <
+	                        Math.abs(dateRange[0].getTime() - lowerItem_1.date.getTime())) {
+	                        lowerItem_1 = item;
+	                    }
+	                    if (Math.abs(dateRange[1].getTime() - item.date.getTime()) <
+	                        Math.abs(dateRange[1].getTime() - upperItem_1.date.getTime())) {
+	                        upperItem_1 = item;
+	                    }
+	                });
+	                items = [lowerItem_1, upperItem_1];
+	            }
+	            _this.events.raiseEvent("rangeSelected", dateRange, items);
+	        }, DEBOUNCE_TIME);
+	        this.brush = d3.svg.brush().on("brush", brushed);
+	    };
+	    /**
+	     * Resizes all the elements in the graph
+	     */
+	    TimeBrush.prototype.resizeElements = function () {
+	        var _this = this;
+	        var margin = { top: 0, right: 10, bottom: 20, left: 10 }, width = this._dimensions.width - margin.left - margin.right, height = this._dimensions.height - margin.top - margin.bottom;
+	        this.x.range([0, width]);
+	        this.y.range([height, 0]);
+	        if (this.bars && this._data) {
+	            var tmp = this.bars
+	                .selectAll("rect")
+	                .data(this._data);
+	            tmp
+	                .enter().append("rect");
+	            tmp
+	                .attr("transform", function (d, i) {
+	                var rectHeight = _this.y(0) - _this.y(d.value);
+	                var x = _this.x(d.date) || 0;
+	                return "translate(" + x + "," + (height - rectHeight) + ")";
+	            })
+	                .attr("width", 2)
+	                .attr("height", function (d) { return Math.max(0, _this.y(0) - _this.y(d.value)); });
+	            tmp.exit().remove();
+	        }
+	        this.svg
+	            .attr("width", width + margin.left + margin.right)
+	            .attr("height", height + margin.top + margin.bottom);
+	        this.clip
+	            .attr("width", width)
+	            .attr("height", height);
+	        this.xAxis
+	            .attr("transform", "translate(0," + height + ")")
+	            .call(d3.svg.axis().scale(this.x).orient("bottom").ticks(this.dimensions.width / TICK_WIDTH));
+	        this.context
+	            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+	        this.brush.x(this.x);
+	        // Need to recreate the brush element for some reason
+	        d3.selectAll(this.element.find(".x.brush").toArray()).remove();
+	        this.brushEle = this.context.append("g")
+	            .attr("class", "x brush")
+	            .call(this.brush)
+	            .selectAll("rect")
+	            .attr("height", height + 7)
+	            .attr("y", -6);
+	        this.brushGrip = d3.select(this.element.find(".x.brush")[0])
+	            .selectAll(".resize").append("rect")
+	            .attr('x', -3)
+	            .attr('rx', 2)
+	            .attr('ry', 2)
+	            .attr("y", (height / 2) - 15)
+	            .attr("width", 6)
+	            .attr("fill", "lightgray")
+	            .attr("height", 30);
+	    };
+	    return TimeBrush;
+	}());
+	exports.TimeBrush = TimeBrush;
+
+
+/***/ },
+/* 4 */
+/***/ function(module, exports) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_4__;
+
+/***/ },
+/* 5 */
+/***/ function(module, exports) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_5__;
+
+/***/ },
+/* 6 */
+/***/ function(module, exports) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_6__;
+
+/***/ },
+/* 7 */
+/***/ function(module, exports) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_7__;
+
+/***/ }
+/******/ ])
+});
+;
