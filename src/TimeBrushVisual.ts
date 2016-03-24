@@ -1,10 +1,10 @@
-/// <reference path="../../base/references.d.ts"/>
+/// <reference path="../base/references.d.ts"/>
 declare var _;
 
 import { TimeBrush as TimeBrushImpl, TimeBrushDataItem } from "./TimeBrush";
 
-import { VisualBase } from "../../base/VisualBase";
-import { default as Utils, Visual } from "../../base/Utils";
+import { VisualBase } from "../base/VisualBase";
+import { default as Utils, Visual } from "../base/Utils";
 import IVisual = powerbi.IVisual;
 import DataViewTable = powerbi.DataViewTable;
 import IVisualHostServices = powerbi.IVisualHostServices;
