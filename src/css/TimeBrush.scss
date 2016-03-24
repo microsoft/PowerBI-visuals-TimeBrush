@@ -1,5 +1,5 @@
 @import "./Base";
-@import "../../../base/powerbi/css/main";
+@import "../../base/css/main";
 
 svg {
     @extend .regularFont;
@@ -7,5 +7,5 @@ svg {
 }
 
 .bars {
-  fill: $dataColor1;
+  fill: rgba(0,100,200,.5);
 }
