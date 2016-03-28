@@ -194,6 +194,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this._dimensions = { width: 500, height: 500 };
 	        this._eventEmitter = new EventEmitter_1.default();
 	        this.element = element;
+	        this.element.hide();
 	        this.x = d3.time.scale();
 	        this.y = d3.scale.linear();
 	        this.buildTimeScale();
@@ -216,6 +217,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	         */
 	        set: function (data) {
 	            this._data = data || [];
+	            // Hide/show based on the data
+	            this.element.toggle(this._data.length > 0);
 	            this.x.domain(d3.extent(this._data.map(function (d) { return d.date; })));
 	            this.y.domain([0, d3.max(this._data.map(function (d) { return +d.value; }))]);
 	            this.resizeElements();
@@ -246,6 +249,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	         */
 	        set: function (value) {
 	            $.extend(this._dimensions, value);
+	            this.dimensions.height = Math.max(50, this.dimensions.height);
+	            this.dimensions.width = Math.max(50, this.dimensions.width);
 	            this.resizeElements();
 	            if (this._range) {
 	                this.brush.extent(this._range);
@@ -333,6 +338,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                });
 	                items = [lowerItem_1, upperItem_1];
 	            }
+	            _this._range = dateRange;
 	            _this.events.raiseEvent("rangeSelected", dateRange, items);
 	        }, DEBOUNCE_TIME);
 	        this.brush = d3.svg.brush().on("brush", brushed);
