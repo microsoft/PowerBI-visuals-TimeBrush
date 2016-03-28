@@ -85,6 +85,8 @@ export class TimeBrush {
      */
     public set dimensions(value: any) {
         $.extend(this._dimensions, value);
+        this.dimensions.height = Math.max(50, this.dimensions.height);
+        this.dimensions.width = Math.max(50, this.dimensions.width);
         this.resizeElements();
         if (this._range) {
             this.brush.extent(<any>this._range);
