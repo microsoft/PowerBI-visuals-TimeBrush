@@ -33,6 +33,7 @@ export class TimeBrush {
      */
     constructor(element: JQuery, dimensions?: any) {
         this.element = element;
+        this.element.hide();
         this.x = d3.time.scale<Date>();
         this.y = d3.scale.linear();
         this.buildTimeScale();
@@ -55,6 +56,10 @@ export class TimeBrush {
      */
     public set data(data: TimeBrushDataItem[]) {
         this._data = data || [];
+        
+        // Hide/show based on the data
+        this.element.toggle(this._data.length > 0);
+        
         this.x.domain(d3.extent(this._data.map((d) => d.date)));
         this.y.domain([0, d3.max(this._data.map((d) => +d.value))]);
         this.resizeElements();
