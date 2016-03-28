@@ -178,6 +178,7 @@ export class TimeBrush {
                 });
                 items = [lowerItem, upperItem];
             }
+            this._range = <any>dateRange;
             this.events.raiseEvent("rangeSelected", dateRange, items);
         }, DEBOUNCE_TIME);
 

@@ -288,17 +288,25 @@ export default class TimeBrush extends VisualBase implements IVisual {
                     powerbi.data.SQExprBuilder[builderType](items[1].rawDate))
             );
         }
-        var objects: powerbi.VisualObjectInstancesToPersist = {
-            merge: [
-                <VisualObjectInstance>{
-                    objectName: "general",
-                    selector: undefined,
-                    properties: {
-                        "filter": filter
-                    }
-                }
-            ]
+        var instance =  <powerbi.VisualObjectInstance>{
+            objectName: "general",
+            selector: undefined,
+            properties: {
+                "filter": filter
+            }
         };
+                
+        var objects: powerbi.VisualObjectInstancesToPersist = { };
+        if (filter) {
+            $.extend(objects, {
+                merge: [instance]
+            });
+        } else {
+            $.extend(objects, {
+                remove: [instance]
+            });
+        }
+
 
         this.host.persistProperties(objects);
 
