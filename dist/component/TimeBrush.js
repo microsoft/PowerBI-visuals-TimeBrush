@@ -96,6 +96,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	         */
 	        set: function (data) {
 	            this._data = data || [];
+	            this.selectedRange = undefined;
 	            // Hide/show based on the data
 	            this.element.toggle(this._data.length > 0);
 	            this.x.domain(d3.extent(this._data.map(function (d) { return d.date; })));
@@ -165,14 +166,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	                return false;
 	            }
 	            function redrawRange() {
-	                this.brush.extent(range);
+	                if (range && range.length === 2) {
+	                    this.brush.extent(range);
+	                }
+	                else {
+	                    this.brush.clear();
+	                }
 	                this.brush(d3.select(this.element.find(".brush")[0]));
 	            }
 	            if (selectedRangeChanged.bind(this)()) {
 	                this._range = range;
-	                if (range && range.length) {
-	                    redrawRange.bind(this)();
-	                }
+	                redrawRange.bind(this)();
 	            }
 	        },
 	        enumerable: true,
