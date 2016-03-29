@@ -69,9 +69,29 @@ export default class TimeBrush extends VisualBase implements IVisual {
                         }
                     },
                 },
+            },
+            selection: {
+                displayName: "Selection",
+                properties: {
+                    clearSelectionAfterDataChange: {
+                        displayName: "Clear selection after data changed",
+                        description: "Setting this to true will clear the selection after the data is changed",
+                        type: { bool: true }
+                    }
+                }
             }
         }
     });
+    
+    /**
+     * The current data set
+     */
+    private _data: any[];
+    
+    /**
+     * Setting for clearing selection after data has changed
+     */
+    private clearSelectionOnDataChange = false;
 
     /**
      * The template for the grid
@@ -117,6 +137,8 @@ export default class TimeBrush extends VisualBase implements IVisual {
             if (dataView) {
                 var dataViewCategorical = dataView.categorical;
                 var data = TimeBrush.converter(dataView);
+                const hasDataChanged = Utils.hasDataChanged(data, this._data, (a, b) => a.identity.equals(b.identity));
+                this._data = data;
 
                 // Stash this bad boy for later, so we can filter the time column
                 if (dataViewCategorical && dataViewCategorical.categories) {
@@ -126,21 +148,36 @@ export default class TimeBrush extends VisualBase implements IVisual {
                 this.timeBrush.data = data;
 
                 var item: any = dataView.metadata.objects;
-                if (dataView.metadata.objects && item.general && item.general.filter
-                    && item.general.filter.whereItems && item.general.filter.whereItems[0]
-                    && item.general.filter.whereItems && item.general.filter.whereItems[0].condition) {
-                    var filterStartDate = item.general.filter.whereItems[0].condition.lower.value;
-                    var filterEndDate = item.general.filter.whereItems[0].condition.upper.value;
-                    startDate = TimeBrush.coerceDate(filterStartDate);
-                    endDate = TimeBrush.coerceDate(filterEndDate);
+                
+                // Set the selection option
+                var newSelection = item && item.selection && item.selection.clearSelectionAfterDataChange;
+                this.clearSelectionOnDataChange = typeof newSelection !== "undefined" ? !!newSelection : true;
+                const oldFilter = this.getFilterFromObjects(item);
+                if (oldFilter) {
+                    let updateSelection = !hasDataChanged || !this.clearSelectionOnDataChange;
+                    if (updateSelection) {
+                        var filterStartDate = oldFilter.lower.value;
+                        var filterEndDate = oldFilter.upper.value;
+                        startDate = TimeBrush.coerceDate(filterStartDate);
+                        endDate = TimeBrush.coerceDate(filterEndDate);
 
-                    // If the selection has changed at all, then set it
-                    var currentSelection = this.timeBrush.selectedRange;
-                    if (!currentSelection ||
-                        currentSelection.length !== 2 ||
-                        startDate !== currentSelection[0] ||
-                        endDate !== currentSelection[1]) {
-                        this.timeBrush.selectedRange = [startDate, endDate];
+                        // If the selection has changed at all, then set it
+                        var currentSelection = this.timeBrush.selectedRange;
+                        if (!currentSelection ||
+                            currentSelection.length !== 2 ||
+                            startDate !== currentSelection[0] ||
+                            endDate !== currentSelection[1]) {
+                            this.timeBrush.selectedRange = [startDate, endDate];
+                        }
+                    } else {
+                        // Remove the filter completely
+                        this.host.persistProperties({
+                            remove: [{
+                                objectName: "general",
+                                selector: undefined,
+                                properties: { filter: undefined }
+                            }]    
+                        });
                     }
                 }
             }
@@ -156,6 +193,11 @@ export default class TimeBrush extends VisualBase implements IVisual {
             objectName: options.objectName,
             properties: {}
         }];
+        if (options.objectName === "selection") {
+            instances[0].properties = {
+                clearSelectionAfterDataChange: this.clearSelectionOnDataChange
+            };
+        }
         return instances;
     }
 
@@ -319,6 +361,20 @@ export default class TimeBrush extends VisualBase implements IVisual {
      */
     protected getCss() : string[] {
         return this.noCss ? [] : super.getCss().concat([require("!css!sass!./css/TimeBrushVisual.scss")]);
+    }
+    
+    /**
+     * Gets the filter from the objects
+     */
+    private getFilterFromObjects(objects: any) {
+        if (objects && 
+            objects.general && 
+            objects.general.filter && 
+            objects.general.filter.whereItems && 
+            objects.general.filter.whereItems[0] && 
+            objects.general.filter.whereItems[0].condition) {
+            return objects.general.filter.whereItems[0].condition;
+        }
     }
 }
 
