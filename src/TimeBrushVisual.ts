@@ -122,6 +122,8 @@ export default class TimeBrush extends VisualBase implements IVisual {
                 if (dataViewCategorical && dataViewCategorical.categories) {
                     this.timeColumn = dataViewCategorical.categories[0];
                 }
+                
+                this.timeBrush.data = data;
 
                 var item: any = dataView.metadata.objects;
                 if (dataView.metadata.objects && item.general && item.general.filter
@@ -141,8 +143,6 @@ export default class TimeBrush extends VisualBase implements IVisual {
                         this.timeBrush.selectedRange = [startDate, endDate];
                     }
                 }
-                
-                this.timeBrush.data = data;
             }
         }
     }

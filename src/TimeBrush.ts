@@ -56,6 +56,7 @@ export class TimeBrush {
      */
     public set data(data: TimeBrushDataItem[]) {
         this._data = data || [];
+        this.selectedRange = undefined;
         
         // Hide/show based on the data
         this.element.toggle(this._data.length > 0);
@@ -119,15 +120,17 @@ export class TimeBrush {
         }
 
         function redrawRange() {
-            this.brush.extent(<any>range);
+            if (range && range.length === 2) {
+                this.brush.extent(<any>range);
+            } else {
+                this.brush.clear();
+            }
             this.brush(d3.select(this.element.find(".brush")[0]));
         }
 
         if (selectedRangeChanged.bind(this)()) {
             this._range = range;
-            if (range && range.length) {
-                redrawRange.bind(this)();
-            }
+            redrawRange.bind(this)();
         }
     }
 
