@@ -315,19 +315,26 @@ export default class TimeBrush extends VisualBase implements IVisual {
             const sourceType = this.timeColumn.source.type;
             let filterExpr;
             let builderType = "text";
-            if (sourceType === powerbi.ValueType.fromDescriptor({ integer: true })) {
+            if (sourceType.extendedType === powerbi.ValueType.fromDescriptor({ integer: true }).extendedType) {
                 builderType = "integer";
-            } else if (sourceType === powerbi.ValueType.fromDescriptor({ numeric: true })) {
+            } else if (sourceType.extendedType === powerbi.ValueType.fromDescriptor({ numeric: true }).extendedType) {
                 builderType = "decimal";
-            } else if (sourceType === powerbi.ValueType.fromDescriptor({ dateTime: true })) {
+            } else if (sourceType.extendedType === powerbi.ValueType.fromDescriptor({ dateTime: true }).extendedType) {
                 builderType = "dateTime";
+            }
+            
+            let value1 = items[0].rawDate;
+            let value2 = items[0].rawDate;
+            if (builderType === "text") {
+                value1 = value1 + "";
+                value2 = value2 + "";
             }
             
             filter = powerbi.data.SemanticFilter.fromSQExpr(
                 powerbi.data.SQExprBuilder.between(
                     this.timeColumn.identityFields[0],
-                    powerbi.data.SQExprBuilder[builderType](items[0].rawDate),
-                    powerbi.data.SQExprBuilder[builderType](items[1].rawDate))
+                    powerbi.data.SQExprBuilder[builderType](value1),
+                    powerbi.data.SQExprBuilder[builderType](value2))
             );
         }
         var instance =  <powerbi.VisualObjectInstance>{
