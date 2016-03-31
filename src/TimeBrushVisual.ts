@@ -324,7 +324,7 @@ export default class TimeBrush extends VisualBase implements IVisual {
             }
             
             let value1 = items[0].rawDate;
-            let value2 = items[0].rawDate;
+            let value2 = items[1].rawDate;
             if (builderType === "text") {
                 value1 = value1 + "";
                 value2 = value2 + "";
