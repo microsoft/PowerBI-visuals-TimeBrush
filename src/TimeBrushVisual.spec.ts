@@ -1,4 +1,4 @@
-import { Utils as SpecUtils } from "../base/spec/visualHelpers";
+import { Utils as SpecUtils } from "../base/powerbi/spec/visualHelpers";
 import { expect } from "chai";
 import TimeBrushVisual from "./TimeBrushVisual";
 import * as $ from "jquery";

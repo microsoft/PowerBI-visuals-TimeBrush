@@ -3,6 +3,8 @@ import * as ReactDOM from "react-dom";
 const $ = require("jquery");
 import { TimeBrush as TimeBrushImpl, TimeBrushDataItem } from "./TimeBrush";
 
+require("./css/TimeBrush.scss");
+
 export interface TimeBrushProps {
     selectedRange?: [Date, Date];
     onSelectedRangeChanged?: (range: [Date, Date]) => void;
