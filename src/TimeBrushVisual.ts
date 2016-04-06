@@ -1,10 +1,19 @@
+<<<<<<< HEAD
 /// <reference path="../base/powerbi/references.d.ts"/>
+=======
+/// <reference path="../base/references.d.ts"/>
+>>>>>>> 161b7ddad4536977f51ed68c0c813442fa54a022
 declare var _;
 
 import { TimeBrush as TimeBrushImpl, TimeBrushDataItem } from "./TimeBrush";
 
+<<<<<<< HEAD
 import { VisualBase } from "../base/powerbi/VisualBase";
 import { default as Utils, Visual } from "../base/powerbi/Utils";
+=======
+import { VisualBase } from "../base/VisualBase";
+import { default as Utils, Visual } from "../base/Utils";
+>>>>>>> 161b7ddad4536977f51ed68c0c813442fa54a022
 import IVisual = powerbi.IVisual;
 import DataViewTable = powerbi.DataViewTable;
 import IVisualHostServices = powerbi.IVisualHostServices;
@@ -23,7 +32,11 @@ import DataViewCategoryColumn = powerbi.DataViewCategoryColumn;
 
 const moment = require("moment");
 
+<<<<<<< HEAD
 @Visual(require("./build").output.PowerBI)
+=======
+@Visual(require("./build.js").output.PowerBI)
+>>>>>>> 161b7ddad4536977f51ed68c0c813442fa54a022
 export default class TimeBrush extends VisualBase implements IVisual {
 
     private host : IVisualHostServices;
