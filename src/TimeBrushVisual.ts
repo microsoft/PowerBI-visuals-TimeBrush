@@ -1,72 +1,66 @@
 /// <reference path="../base/powerbi/references.d.ts"/>
-declare var _;
+declare var _: any;
 
 import { TimeBrush as TimeBrushImpl, TimeBrushDataItem } from "./TimeBrush";
 
 import { VisualBase } from "../base/powerbi/VisualBase";
 import { default as Utils, Visual } from "../base/powerbi/Utils";
 import IVisual = powerbi.IVisual;
-import DataViewTable = powerbi.DataViewTable;
 import IVisualHostServices = powerbi.IVisualHostServices;
 import VisualCapabilities = powerbi.VisualCapabilities;
 import VisualInitOptions = powerbi.VisualInitOptions;
 import VisualUpdateOptions = powerbi.VisualUpdateOptions;
-import DataViewMetadataColumn = powerbi.DataViewMetadataColumn;
 import VisualObjectInstance = powerbi.VisualObjectInstance;
 import DataView = powerbi.DataView;
 import SelectionId = powerbi.visuals.SelectionId;
-import SelectionManager = powerbi.visuals.utility.SelectionManager;
 import VisualDataRoleKind = powerbi.VisualDataRoleKind;
-import SQExpr = powerbi.data.SQExpr;
 import EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInstancesOptions;
 import DataViewCategoryColumn = powerbi.DataViewCategoryColumn;
 
+/* tslint:disable */
 const moment = require("moment");
+/* tslint:enable */
 
 @Visual(require("./build").output.PowerBI)
 export default class TimeBrush extends VisualBase implements IVisual {
-
-    private host : IVisualHostServices;
-    private timeColumn: DataViewCategoryColumn;
-    private timeBrush: TimeBrushImpl;
 
     /**
      * The set of capabilities for the visual
      */
     public static capabilities: VisualCapabilities = $.extend(true, {}, VisualBase.capabilities, {
         dataRoles: [{
-            name: 'Times',
+            name: "Times",
             kind: VisualDataRoleKind.Grouping,
-            displayName: "Time"
+            displayName: "Time",
         }, {
-            name: 'Values',
+            name: "Values",
             kind: VisualDataRoleKind.Measure,
-            displayName: "Values"
-        }],
+            displayName: "Values",
+        }, ],
         dataViewMappings: [{
             categorical: {
                 categories: {
-                    for: { in: 'Times' },
-                    dataReductionAlgorithm: { top: {} }
+                    for: { in: "Times" },
+                    dataReductionAlgorithm: { top: {} },
                 },
                 values: {
-                    select: [{ bind: { to: 'Values' } }]
-                }
+                    select: [{ bind: { to: "Values" } }]
+                },
             },
-            conditions: [{ 'Times': { max: 1, min: 0 }, 'Values': { max: 1, min: 0 } }],
-        }],
+            conditions: [{ "Times": { max: 1, min: 0 }, "Values": { max: 1, min: 0 } }],
+        }, ],
         objects: {
             general: {
-                displayName: powerbi.data.createDisplayNameGetter('Visual_General'),
+                displayName: powerbi.data.createDisplayNameGetter("Visual_General"),
                 properties: {
                     filter: {
                         type: { filter: {} },
                         rule: {
                             output: {
-                                property: 'selected',
-                                selector: ['Time'],
-                            }
-                        }
+                                property: "selected",
+                                selector: ["Time"],
+                            },
+                        },
                     },
                 },
             },
@@ -76,18 +70,40 @@ export default class TimeBrush extends VisualBase implements IVisual {
                     clearSelectionAfterDataChange: {
                         displayName: "Clear selection after data changed",
                         description: "Setting this to true will clear the selection after the data is changed",
-                        type: { bool: true }
-                    }
-                }
-            }
-        }
+                        type: { bool: true },
+                    },
+                },
+            },
+        },
     });
-    
+
+    /**
+     * The formats for moment to test
+     */
+    public static MOMENT_FORMATS = [
+        moment.ISO_8601,
+        "MM/DD/YYYY HH:mm:ss",
+        "MM/DD/YYYY HH:mm",
+        "MM/DD/YYYY",
+        "YYYY/MM/DD HH:mm:ss",
+        "YYYY/MM/DD HH:mm",
+        "YYYY/MM/DD",
+        "YYYY",
+        "HH:mm:ss",
+        "HH:mm",
+        "MM",
+        "DD",
+    ];
+
+    private host: IVisualHostServices;
+    private timeColumn: DataViewCategoryColumn;
+    private timeBrush: TimeBrushImpl;
+
     /**
      * The current data set
      */
     private _data: any[];
-    
+
     /**
      * Setting for clearing selection after data has changed
      */
@@ -101,112 +117,26 @@ export default class TimeBrush extends VisualBase implements IVisual {
             <div class="timebrush"></div>
         </div>
     `;
-    
+
     /**
-     * Compares the ids of the two given items
+     * Whether or not to include css
      */
-    private idCompare = (a : TimeBrushVisualDataItem, b: TimeBrushVisualDataItem) => a.identity.equals(b.identity);
-    
+    private noCss = false;
+
     /**
      * Constructor for the timebrush visual
      */
-    constructor(private noCss = false) {
+    constructor(noCss = false) {
         super();
-    }
-
-    /** This is called once when the visual is initialially created */
-    public init(options: VisualInitOptions): void {
-        super.init(options);
-        this.element.append($(this.template));
-        this.host = options.host;
-        this.timeBrush = new TimeBrushImpl(this.element.find(".timebrush"), { width: options.viewport.width, height: options.viewport.height });
-        this.timeBrush.events.on("rangeSelected", (range, items) => this.onTimeRangeSelected(range, items));
-    }
-
-    /** Update is called for data updates, resizes & formatting changes */
-    public update(options: VisualUpdateOptions) {
-        super.update(options);
-
-        // If the dimensions changed
-        if (!_.isEqual(this.timeBrush.dimensions, options.viewport)) {
-            this.timeBrush.dimensions = { width: options.viewport.width, height: options.viewport.height };
-        } else {
-            var startDate;
-            var endDate;
-            var dataView = options.dataViews && options.dataViews[0];
-            if (dataView) {
-                var dataViewCategorical = dataView.categorical;
-                var data = TimeBrush.converter(dataView);
-                const hasDataChanged = Utils.hasDataChanged(data, this._data, (a, b) => a.identity.equals(b.identity));
-                this._data = data;
-
-                // Stash this bad boy for later, so we can filter the time column
-                if (dataViewCategorical && dataViewCategorical.categories) {
-                    this.timeColumn = dataViewCategorical.categories[0];
-                }
-                
-                this.timeBrush.data = data;
-
-                var item: any = dataView.metadata.objects;
-                
-                // Set the selection option
-                var newSelection = item && item.selection && item.selection.clearSelectionAfterDataChange;
-                this.clearSelectionOnDataChange = typeof newSelection !== "undefined" ? !!newSelection : true;
-                const oldFilter = this.getFilterFromObjects(item);
-                if (oldFilter) {
-                    let updateSelection = !hasDataChanged || !this.clearSelectionOnDataChange;
-                    if (updateSelection) {
-                        var filterStartDate = oldFilter.lower.value;
-                        var filterEndDate = oldFilter.upper.value;
-                        startDate = TimeBrush.coerceDate(filterStartDate);
-                        endDate = TimeBrush.coerceDate(filterEndDate);
-
-                        // If the selection has changed at all, then set it
-                        var currentSelection = this.timeBrush.selectedRange;
-                        if (!currentSelection ||
-                            currentSelection.length !== 2 ||
-                            startDate !== currentSelection[0] ||
-                            endDate !== currentSelection[1]) {
-                            this.timeBrush.selectedRange = [startDate, endDate];
-                        }
-                    } else {
-                        // Remove the filter completely
-                        this.host.persistProperties({
-                            remove: [{
-                                objectName: "general",
-                                selector: undefined,
-                                properties: { filter: undefined }
-                            }]    
-                        });
-                    }
-                }
-            }
-        }
-    }
-    
-    /**
-     * Enumerates the instances for the objects that appear in the power bi panel
-     */
-    public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstance[] {
-        let instances = super.enumerateObjectInstances(options) || [{
-            selector: null, 
-            objectName: options.objectName,
-            properties: {}
-        }];
-        if (options.objectName === "selection") {
-            instances[0].properties = {
-                clearSelectionAfterDataChange: this.clearSelectionOnDataChange
-            };
-        }
-        return instances;
+        this.noCss = noCss;
     }
 
     /**
      * Converts the data view into a time scale
      */
-    public static converter(dataView : DataView) : TimeBrushVisualDataItem[] {
-        var items : TimeBrushVisualDataItem[];
-        var dataViewCategorical = dataView && dataView.categorical;
+    public static converter(dataView: DataView): TimeBrushVisualDataItem[] {
+        let items: TimeBrushVisualDataItem[];
+        let dataViewCategorical = dataView && dataView.categorical;
 
         // Must be two columns: times and values
         if (dataViewCategorical && dataViewCategorical.categories && dataViewCategorical.values && dataViewCategorical.values.length) {
@@ -217,7 +147,7 @@ export default class TimeBrush extends VisualBase implements IVisual {
                         date: coercedDate,
                         rawDate: date,
                         value: dataViewCategorical.values[0].values[i],
-                        identity: SelectionId.createWithId(dataViewCategorical.categories[0].identity[i])
+                        identity: SelectionId.createWithId(dataViewCategorical.categories[0].identity[i]),
                     } : null;
                 }).filter(n => !!n);
             }/* else if (dataViewCategorical.categories.length > 1) {
@@ -253,46 +183,21 @@ export default class TimeBrush extends VisualBase implements IVisual {
         }
         return items;
     }
-    
-    /**
-     * Returns a numerical value for a month
-     */
-    public static getMonthFromString(mon: string){
-        return new Date(Date.parse(mon +" 1, 2012")).getMonth()+1
-    }
-    
-    /**
-     * The formats for moment to test
-     */
-    public static MOMENT_FORMATS = [
-        moment.ISO_8601,
-        "MM/DD/YYYY HH:mm:ss",
-        "MM/DD/YYYY HH:mm",
-        "MM/DD/YYYY",
-        "YYYY/MM/DD HH:mm:ss",
-        "YYYY/MM/DD HH:mm",
-        "YYYY/MM/DD",
-        "YYYY",
-        "HH:mm:ss",
-        "HH:mm",
-        "MM",
-        "DD"
-    ];
-    
+
     /**
      * Coerces the given date value into a date object
      */
-    public static coerceDate(dateValue: any) : Date {
+    public static coerceDate(dateValue: any): Date {
         if (!dateValue) {
             return;
         }
-            
+
         if (typeof dateValue === "string" && dateValue) {
             dateValue = dateValue.replace(/-/g, "/");
             const parsedDate = moment(dateValue, TimeBrush.MOMENT_FORMATS);
             dateValue = parsedDate.toDate();
         }
-        
+
         // Assume it is just a year
         if (dateValue > 31 && dateValue <= 10000) {
             dateValue = new Date(dateValue, 0);
@@ -306,14 +211,115 @@ export default class TimeBrush extends VisualBase implements IVisual {
     }
 
     /**
+     * Returns a numerical value for a month
+     */
+    public static getMonthFromString(mon: string) {
+        return new Date(Date.parse(mon + " 1, 2012")).getMonth() + 1;
+    }
+
+    /** This is called once when the visual is initialially created */
+    public init(options: VisualInitOptions): void {
+        super.init(options);
+        this.element.append($(this.template));
+        this.host = options.host;
+        const dims = { width: options.viewport.width, height: options.viewport.height };
+        this.timeBrush = new TimeBrushImpl(this.element.find(".timebrush"), dims);
+        this.timeBrush.events.on("rangeSelected", (range: Date[], items: any[]) => this.onTimeRangeSelected(range, items));
+    }
+
+    /** Update is called for data updates, resizes & formatting changes */
+    public update(options: VisualUpdateOptions) {
+        super.update(options);
+
+        // If the dimensions changed
+        if (!_.isEqual(this.timeBrush.dimensions, options.viewport)) {
+            this.timeBrush.dimensions = { width: options.viewport.width, height: options.viewport.height };
+        } else {
+            let startDate: Date;
+            let endDate: Date;
+            let dataView = options.dataViews && options.dataViews[0];
+            if (dataView) {
+                let dataViewCategorical = dataView.categorical;
+                let data = TimeBrush.converter(dataView);
+                const hasDataChanged = Utils.hasDataChanged(data, this._data, (a, b) => a.identity.equals(b.identity));
+                this._data = data;
+
+                // Stash this bad boy for later, so we can filter the time column
+                if (dataViewCategorical && dataViewCategorical.categories) {
+                    this.timeColumn = dataViewCategorical.categories[0];
+                }
+
+                this.timeBrush.data = data;
+
+                let item: any = dataView.metadata.objects;
+
+                // Set the selection option
+                let newSelection = item && item.selection && item.selection.clearSelectionAfterDataChange;
+                this.clearSelectionOnDataChange = typeof newSelection !== "undefined" ? !!newSelection : true;
+                const oldFilter = this.getFilterFromObjects(item);
+                if (oldFilter) {
+                    let updateSelection = !hasDataChanged || !this.clearSelectionOnDataChange;
+                    if (updateSelection) {
+                        let filterStartDate = oldFilter.lower.value;
+                        let filterEndDate = oldFilter.upper.value;
+                        startDate = TimeBrush.coerceDate(filterStartDate);
+                        endDate = TimeBrush.coerceDate(filterEndDate);
+
+                        // If the selection has changed at all, then set it
+                        let currentSelection = this.timeBrush.selectedRange;
+                        if (!currentSelection ||
+                            currentSelection.length !== 2 ||
+                            startDate !== currentSelection[0] ||
+                            endDate !== currentSelection[1]) {
+                            this.timeBrush.selectedRange = [startDate, endDate];
+                        }
+                    } else {
+                        // Remove the filter completely
+                        this.host.persistProperties({
+                            remove: [{
+                                objectName: "general",
+                                selector: undefined,
+                                properties: { filter: undefined },
+                            }, ],
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Enumerates the instances for the objects that appear in the power bi panel
+     */
+    public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstance[] {
+        let instances = super.enumerateObjectInstances(options) || [{
+            selector: null,
+            objectName: options.objectName,
+            properties: {},
+        }, ];
+        if (options.objectName === "selection") {
+            instances[0].properties = {
+                clearSelectionAfterDataChange: this.clearSelectionOnDataChange
+            };
+        }
+        return instances;
+    }
+
+    /**
+     * Gets the inline css used for this element
+     */
+    protected getCss(): string[] {
+        return this.noCss ? [] : super.getCss().concat([require("!css!sass!./css/TimeBrushVisual.scss")]);
+    }
+
+    /**
      * Raised when the time range is selected
      * @param range undefined means no range, otherwise should be [startDate, endDate]
      */
     private onTimeRangeSelected(range: Date[], items: TimeBrushVisualDataItem[]) {
-        var filter;
+        let filter: any;
         if (range && range.length === 2) {
             const sourceType = this.timeColumn.source.type;
-            let filterExpr;
             let builderType = "text";
             if (sourceType.extendedType === powerbi.ValueType.fromDescriptor({ integer: true }).extendedType) {
                 builderType = "integer";
@@ -322,30 +328,30 @@ export default class TimeBrush extends VisualBase implements IVisual {
             } else if (sourceType.extendedType === powerbi.ValueType.fromDescriptor({ dateTime: true }).extendedType) {
                 builderType = "dateTime";
             }
-            
+
             let value1 = items[0].rawDate;
             let value2 = items[1].rawDate;
             if (builderType === "text") {
                 value1 = value1 + "";
                 value2 = value2 + "";
             }
-            
+
             filter = powerbi.data.SemanticFilter.fromSQExpr(
                 powerbi.data.SQExprBuilder.between(
-                    this.timeColumn.identityFields[0],
+                    <any>this.timeColumn.identityFields[0],
                     powerbi.data.SQExprBuilder[builderType](value1),
                     powerbi.data.SQExprBuilder[builderType](value2))
             );
         }
-        var instance =  <powerbi.VisualObjectInstance>{
+        let instance =  <powerbi.VisualObjectInstance>{
             objectName: "general",
             selector: undefined,
             properties: {
                 "filter": filter
-            }
+            },
         };
-                
-        var objects: powerbi.VisualObjectInstancesToPersist = { };
+
+        let objects: powerbi.VisualObjectInstancesToPersist = { };
         if (filter) {
             $.extend(objects, {
                 merge: [instance]
@@ -364,21 +370,14 @@ export default class TimeBrush extends VisualBase implements IVisual {
     }
 
     /**
-     * Gets the inline css used for this element
-     */
-    protected getCss() : string[] {
-        return this.noCss ? [] : super.getCss().concat([require("!css!sass!./css/TimeBrushVisual.scss")]);
-    }
-    
-    /**
      * Gets the filter from the objects
      */
     private getFilterFromObjects(objects: any) {
-        if (objects && 
-            objects.general && 
-            objects.general.filter && 
-            objects.general.filter.whereItems && 
-            objects.general.filter.whereItems[0] && 
+        if (objects &&
+            objects.general &&
+            objects.general.filter &&
+            objects.general.filter.whereItems &&
+            objects.general.filter.whereItems[0] &&
             objects.general.filter.whereItems[0].condition) {
             return objects.general.filter.whereItems[0].condition;
         }
@@ -394,7 +393,7 @@ export interface TimeBrushVisualDataItem extends TimeBrushDataItem {
      * The identity for this individual selection item
      */
     identity: SelectionId;
-    
+
     /**
      * The raw unparsed date for this item
      */

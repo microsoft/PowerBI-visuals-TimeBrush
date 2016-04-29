@@ -1,9 +1,11 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
+/* tslint:disable */
 const $ = require("jquery");
+/* tsline:enable */
 import { TimeBrush as TimeBrushImpl, TimeBrushDataItem } from "./TimeBrush";
 
-require("./css/TimeBrush.scss");
+import "./css/TimeBrush.scss";
 
 export interface TimeBrushProps {
     selectedRange?: [Date, Date];
@@ -26,7 +28,7 @@ export class TimeBrush extends React.Component<TimeBrushProps, TimeBrushState> {
     public componentDidMount(): void {
         this.node = ReactDOM.findDOMNode(this);
         this.timeBrush = new TimeBrushImpl($(this.node), {width: this.props.width, height: this.props.height});
-        this.timeBrush.events.on("rangeSelected", (range) => {
+        this.timeBrush.events.on("rangeSelected", (range: [Date, Date]) => {
             if (this.props && this.props.onSelectedRangeChanged) {
                 this.props.onSelectedRangeChanged(range);
             }

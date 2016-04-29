@@ -3,12 +3,12 @@ import { expect } from "chai";
 import TimeBrushVisual from "./TimeBrushVisual";
 import * as $ from "jquery";
 
-describe('TimeBrushVisual', () => {
-    var parentEle;
+describe("TimeBrushVisual", () => {
+    let parentEle: JQuery;
     beforeEach(() => {
-        global['d3'] = require("d3");
-        global['_'] = require("underscore");
-        parentEle = $('<div></div>');
+        global["d3"] = require("d3");
+        global["_"] = require("underscore");
+        parentEle = $("<div></div>");
     });
 
     afterEach(() => {
@@ -26,34 +26,34 @@ describe('TimeBrushVisual', () => {
         instance.init(initOptions);
         return {
             instance,
-            element: initOptions.element
+            element: initOptions.element,
         };
     };
 
-    it('should load', () => {
+    it("should load", () => {
         expect(createVisual()).to.not.be.undefined;
     });
-    
+
     describe("coerceDate", () => {
         it("should coerce 2014 as a date object", () => {
-            expect(TimeBrushVisual.coerceDate(2014).getFullYear()).to.eq(2014); 
+            expect(TimeBrushVisual.coerceDate(2014).getFullYear()).to.eq(2014);
         });
         it("should coerce '2014' as a date object", () => {
-            expect(TimeBrushVisual.coerceDate('2014').getFullYear()).to.eq(2014); 
+            expect(TimeBrushVisual.coerceDate("2014").getFullYear()).to.eq(2014);
         });
         it("should coerce iso date '1999-03-16T22:29:03.221Z' as the correct date object", () => {
-            let result = TimeBrushVisual.coerceDate('1999-03-16T22:29:03.221Z');
+            let result = TimeBrushVisual.coerceDate("1999-03-16T22:29:03.221Z");
             expect(result.getFullYear()).to.eq(1999);
             expect(result.getDate()).to.eq(16);
             expect(result.getMonth()).to.eq(2); // Months start at 0
-            
+
             // TODO: Time??
         });
         it("should coerce time '12:33' as the correct date object", () => {
-            let result = TimeBrushVisual.coerceDate('12:33');
+            let result = TimeBrushVisual.coerceDate("12:33");
             expect(result.getHours()).to.eq(12);
             expect(result.getMinutes()).to.eq(33); // Months start at 0
-            
+
             // TODO: Time??
         });
         it("should coerce day 22", () => {

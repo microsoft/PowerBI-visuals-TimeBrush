@@ -1,5 +1,7 @@
-import EventEmitter from '../base/EventEmitter';
+import EventEmitter from "../base/EventEmitter";
+/* tslint:disable */
 const $ = require("jquery");
+/* tslint:enable */
 import * as _ from "lodash";
 import * as d3 from "d3";
 
@@ -7,16 +9,14 @@ const DEBOUNCE_TIME = 1000;
 const TICK_WIDTH = 100;
 
 /**
-* Represents a timebrush
-*/
+ * Represents a timebrush
+ */
 /* @Mixin(EventEmitter)*/
 export class TimeBrush {
     private element: JQuery;
     private svg: d3.Selection<any>;
     private x: d3.time.Scale<Date, any>;
     private y: d3.scale.Linear<any, any>;
-    private timeBrushPath: d3.Selection<any>;
-    private area: d3.svg.Area<any>;
     private brush: d3.svg.Brush<Date>;
     private clip: d3.Selection<any>;
     private brushGrip: d3.Selection<any>;
@@ -57,10 +57,10 @@ export class TimeBrush {
     public set data(data: TimeBrushDataItem[]) {
         this._data = data || [];
         this.selectedRange = undefined;
-        
+
         // Hide/show based on the data
         this.element.toggle(this._data.length > 0);
-        
+
         this.x.domain(d3.extent(this._data.map((d) => d.date)));
         this.y.domain([0, d3.max(this._data.map((d) => +d.value))]);
         this.resizeElements();
@@ -155,12 +155,12 @@ export class TimeBrush {
         this.xAxis = this.context.append("g")
             .attr("class", "x axis");
 
-        var brushed = _.debounce(() => {
-            const dateRange = this.brush.empty() ? [] : this.brush.extent();
-            let items = [];
+        let brushed = _.debounce(() => {
+            const dateRange: any[] = this.brush.empty() ? [] : this.brush.extent();
+            let items: any[] = [];
             if (dateRange && dateRange.length) {
-                let lowerItem : TimeBrushDataItem;
-                let upperItem : TimeBrushDataItem;
+                let lowerItem: TimeBrushDataItem;
+                let upperItem: TimeBrushDataItem;
                 this.data.forEach(item => {
                     if (!lowerItem) {
                         lowerItem = item;
@@ -168,12 +168,12 @@ export class TimeBrush {
                     if (!upperItem) {
                         upperItem = item;
                     }
-                    
+
                     if (Math.abs(dateRange[0].getTime() - item.date.getTime()) <
                         Math.abs(dateRange[0].getTime() - lowerItem.date.getTime())) {
                         lowerItem = item;
                     }
-                    
+
                     if (Math.abs(dateRange[1].getTime() - item.date.getTime()) <
                         Math.abs(dateRange[1].getTime() - upperItem.date.getTime())) {
                         upperItem = item;
@@ -192,15 +192,15 @@ export class TimeBrush {
      * Resizes all the elements in the graph
      */
     private resizeElements() {
-        var margin = { top: 0, right: 10, bottom: 20, left: 10 },
+        let margin = { top: 0, right: 10, bottom: 20, left: 10 },
             width = this._dimensions.width - margin.left - margin.right,
             height = this._dimensions.height - margin.top - margin.bottom;
 
-        this.x.range([0, <any>width])
+        this.x.range([0, <any>width]);
         this.y.range([height, 0]);
 
         if (this.bars && this._data) {
-            var tmp = this.bars
+            let tmp = this.bars
                 .selectAll("rect")
                 .data(this._data);
             tmp
@@ -208,7 +208,7 @@ export class TimeBrush {
 
             tmp
                 .attr("transform", (d, i) => {
-                    var rectHeight = this.y(0) - this.y(d.value);
+                    let rectHeight = this.y(0) - this.y(d.value);
                     let x = this.x(d.date) || 0;
                     return `translate(${x},${height - rectHeight})`;
                 })
@@ -246,9 +246,9 @@ export class TimeBrush {
 
         this.brushGrip = d3.select(this.element.find(".x.brush")[0])
             .selectAll(".resize").append("rect")
-            .attr('x', -3)
-            .attr('rx', 2)
-            .attr('ry', 2)
+            .attr("x", -3)
+            .attr("rx", 2)
+            .attr("ry", 2)
             .attr("y", (height / 2) - 15)
             .attr("width", 6)
             .attr("fill", "lightgray")
