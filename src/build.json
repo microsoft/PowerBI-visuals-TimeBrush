@@ -1,16 +1,16 @@
 {
     "output": {
         "PowerBI": {
-            "visualName": "DocumentViewerVisual",
+            "visualName": "HistoryVisual",
             "projectId": "1642434205853",
             "icon": "icon.png",
-            "entry": "DocumentViewerVisual.ts"
+            "entry": "HistoryVisual.tsx"
         },
         "component": {
-            "entry": "DocumentViewer.ts"
+            "entry": "HistoryVisual.tsx"
         },
         "react": {
-            "entry": "DocumentViewerReact.tsx"
+            "entry": "History.tsx"
         }
     }
 }
