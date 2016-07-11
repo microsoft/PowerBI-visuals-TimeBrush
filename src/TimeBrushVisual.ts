@@ -1,10 +1,9 @@
-/// <reference path="../base/powerbi/references.d.ts"/>
 declare var _: any;
 
 import { TimeBrush as TimeBrushImpl, TimeBrushDataItem } from "./TimeBrush";
 
-import { VisualBase } from "../base/powerbi/VisualBase";
-import { default as Utils, Visual } from "../base/powerbi/Utils";
+import { VisualBase, Visual } from "essex.powerbi.base";
+import { default as Utils } from "essex.powerbi.base/src/lib/Utils";
 import IVisual = powerbi.IVisual;
 import IVisualHostServices = powerbi.IVisualHostServices;
 import VisualCapabilities = powerbi.VisualCapabilities;
