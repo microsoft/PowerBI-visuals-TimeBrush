@@ -86,8 +86,8 @@ export class TimeBrush {
      */
     public set dimensions(value: any) {
         $.extend(this._dimensions, value);
-        this.dimensions.height = Math.max(50, this.dimensions.height);
-        this.dimensions.width = Math.max(50, this.dimensions.width);
+        this.dimensions.height = Math.max(100, this.dimensions.height);
+        this.dimensions.width = Math.max(100, this.dimensions.width);
         this.resizeElements();
         if (this._range) {
             this.brush.extent(<any>this._range);
@@ -192,7 +192,7 @@ export class TimeBrush {
      * Resizes all the elements in the graph
      */
     private resizeElements() {
-        let margin = { top: 0, right: 10, bottom: 20, left: 10 },
+        let margin = { top: 0, right: 20, bottom: 20, left: 20 },
             width = this._dimensions.width - margin.left - margin.right,
             height = this._dimensions.height - margin.top - margin.bottom;
 
