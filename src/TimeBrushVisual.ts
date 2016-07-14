@@ -3,7 +3,7 @@ declare var _: any;
 import { TimeBrush as TimeBrushImpl, TimeBrushDataItem } from "./TimeBrush";
 
 import { VisualBase, Visual } from "essex.powerbi.base";
-import { default as Utils } from "essex.powerbi.base/src/lib/Utils";
+import { default as Utils, updateTypeGetter, UpdateType } from "essex.powerbi.base/src/lib/Utils";
 import IVisual = powerbi.IVisual;
 import IVisualHostServices = powerbi.IVisualHostServices;
 import VisualCapabilities = powerbi.VisualCapabilities;
@@ -97,6 +97,7 @@ export default class TimeBrush extends VisualBase implements IVisual {
     private host: IVisualHostServices;
     private timeColumn: DataViewCategoryColumn;
     private timeBrush: TimeBrushImpl;
+    private updateType = updateTypeGetter(this);
 
     /**
      * The current data set
@@ -228,60 +229,61 @@ export default class TimeBrush extends VisualBase implements IVisual {
 
     /** Update is called for data updates, resizes & formatting changes */
     public update(options: VisualUpdateOptions) {
+        const updateType = this.updateType();
         super.update(options);
 
         // If the dimensions changed
-        if (!_.isEqual(this.timeBrush.dimensions, options.viewport)) {
+        if (updateType & UpdateType.Resize) {
             this.timeBrush.dimensions = { width: options.viewport.width, height: options.viewport.height };
-        } else {
+        }
+
+        let dataView = options.dataViews && options.dataViews[0];
+        const hasDataChanged = !!(updateType & UpdateType.Data);
+        if (hasDataChanged && dataView) {
+            let dataViewCategorical = dataView.categorical;
+            let data = TimeBrush.converter(dataView);
+            this._data = data;
+            // Stash this bad boy for later, so we can filter the time column
+            if (dataViewCategorical && dataViewCategorical.categories) {
+                this.timeColumn = dataViewCategorical.categories[0];
+            }
+            this.timeBrush.data = data;
+        }
+
+        if (dataView) {
+            let item: any = dataView && dataView.metadata && dataView.metadata.objects;
+
             let startDate: Date;
             let endDate: Date;
-            let dataView = options.dataViews && options.dataViews[0];
-            if (dataView) {
-                let dataViewCategorical = dataView.categorical;
-                let data = TimeBrush.converter(dataView);
-                const hasDataChanged = Utils.hasDataChanged(data, this._data, (a, b) => a.identity.equals(b.identity));
-                this._data = data;
+            // Set the selection option
+            let newSelection = item && item.selection && item.selection.clearSelectionAfterDataChange;
+            this.clearSelectionOnDataChange = typeof newSelection !== "undefined" ? !!newSelection : true;
+            const oldFilter = this.getFilterFromObjects(item);
+            if (oldFilter) {
+                let updateSelection = !hasDataChanged || !this.clearSelectionOnDataChange;
+                if (updateSelection) {
+                    let filterStartDate = oldFilter.lower.value;
+                    let filterEndDate = oldFilter.upper.value;
+                    startDate = TimeBrush.coerceDate(filterStartDate);
+                    endDate = TimeBrush.coerceDate(filterEndDate);
 
-                // Stash this bad boy for later, so we can filter the time column
-                if (dataViewCategorical && dataViewCategorical.categories) {
-                    this.timeColumn = dataViewCategorical.categories[0];
-                }
-
-                this.timeBrush.data = data;
-
-                let item: any = dataView.metadata.objects;
-
-                // Set the selection option
-                let newSelection = item && item.selection && item.selection.clearSelectionAfterDataChange;
-                this.clearSelectionOnDataChange = typeof newSelection !== "undefined" ? !!newSelection : true;
-                const oldFilter = this.getFilterFromObjects(item);
-                if (oldFilter) {
-                    let updateSelection = !hasDataChanged || !this.clearSelectionOnDataChange;
-                    if (updateSelection) {
-                        let filterStartDate = oldFilter.lower.value;
-                        let filterEndDate = oldFilter.upper.value;
-                        startDate = TimeBrush.coerceDate(filterStartDate);
-                        endDate = TimeBrush.coerceDate(filterEndDate);
-
-                        // If the selection has changed at all, then set it
-                        let currentSelection = this.timeBrush.selectedRange;
-                        if (!currentSelection ||
-                            currentSelection.length !== 2 ||
-                            startDate !== currentSelection[0] ||
-                            endDate !== currentSelection[1]) {
-                            this.timeBrush.selectedRange = [startDate, endDate];
-                        }
-                    } else {
-                        // Remove the filter completely
-                        this.host.persistProperties({
-                            remove: [{
-                                objectName: "general",
-                                selector: undefined,
-                                properties: { filter: undefined },
-                            }, ],
-                        });
+                    // If the selection has changed at all, then set it
+                    let currentSelection = this.timeBrush.selectedRange;
+                    if (!currentSelection ||
+                        currentSelection.length !== 2 ||
+                        startDate !== currentSelection[0] ||
+                        endDate !== currentSelection[1]) {
+                        this.timeBrush.selectedRange = [startDate, endDate];
                     }
+                } else {
+                    // Remove the filter completely
+                    this.host.persistProperties({
+                        remove: [{
+                            objectName: "general",
+                            selector: undefined,
+                            properties: { filter: undefined },
+                        }, ],
+                    });
                 }
             }
         }

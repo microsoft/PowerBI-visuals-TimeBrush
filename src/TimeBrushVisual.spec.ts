@@ -83,4 +83,6 @@ describe("TimeBrushVisual", () => {
             expect(result).to.be.undefined;
         });
     });
+
+    it("should restore selection after a page change");
 });
