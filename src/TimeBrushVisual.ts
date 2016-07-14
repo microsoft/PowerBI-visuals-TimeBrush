@@ -15,6 +15,7 @@ import SelectionId = powerbi.visuals.SelectionId;
 import VisualDataRoleKind = powerbi.VisualDataRoleKind;
 import EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInstancesOptions;
 import DataViewCategoryColumn = powerbi.DataViewCategoryColumn;
+import data = powerbi.data;
 
 /* tslint:disable */
 const moment = require("moment");
@@ -50,7 +51,7 @@ export default class TimeBrush extends VisualBase implements IVisual {
         }, ],
         objects: {
             general: {
-                displayName: powerbi.data.createDisplayNameGetter("Visual_General"),
+                displayName: data.createDisplayNameGetter("Visual_General"),
                 properties: {
                     filter: {
                         type: { filter: {} },
@@ -258,12 +259,22 @@ export default class TimeBrush extends VisualBase implements IVisual {
             // Set the selection option
             let newSelection = item && item.selection && item.selection.clearSelectionAfterDataChange;
             this.clearSelectionOnDataChange = typeof newSelection !== "undefined" ? !!newSelection : true;
-            const oldFilter = this.getFilterFromObjects(item);
+            const oldFilter = this.getFilterFromObjects(item) as data.SQBetweenExpr;
             if (oldFilter) {
-                let updateSelection = !hasDataChanged || !this.clearSelectionOnDataChange;
+                let dataSourceChanged = hasDataChanged;
+                const colExpr = oldFilter.arg as data.SQColumnRefExpr;
+                if (colExpr && colExpr.source) {
+                    const filterSource = colExpr.source as data.SQEntityExpr;
+                    const source = this.timeColumn && (<data.SQColumnRefExpr>this.timeColumn.source.expr).source as data.SQEntityExpr;
+                    dataSourceChanged =
+                        filterSource.entity !== source.entity ||
+                        filterSource.schema !== source.schema ||
+                        filterSource.variable !== source.variable;
+                }
+                let updateSelection = !dataSourceChanged || !this.clearSelectionOnDataChange;
                 if (updateSelection) {
-                    let filterStartDate = oldFilter.lower.value;
-                    let filterEndDate = oldFilter.upper.value;
+                    let filterStartDate = (<data.SQConstantExpr>oldFilter.lower).value;
+                    let filterEndDate = (<data.SQConstantExpr>oldFilter.upper).value;
                     startDate = TimeBrush.coerceDate(filterStartDate);
                     endDate = TimeBrush.coerceDate(filterEndDate);
 
@@ -337,11 +348,11 @@ export default class TimeBrush extends VisualBase implements IVisual {
                 value2 = value2 + "";
             }
 
-            filter = powerbi.data.SemanticFilter.fromSQExpr(
-                powerbi.data.SQExprBuilder.between(
+            filter = data.SemanticFilter.fromSQExpr(
+                data.SQExprBuilder.between(
                     <any>this.timeColumn.identityFields[0],
-                    powerbi.data.SQExprBuilder[builderType](value1),
-                    powerbi.data.SQExprBuilder[builderType](value2))
+                    data.SQExprBuilder[builderType](value1),
+                    data.SQExprBuilder[builderType](value2))
             );
         }
         let instance =  <powerbi.VisualObjectInstance>{
