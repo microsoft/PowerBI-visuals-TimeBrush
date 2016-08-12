@@ -89,7 +89,7 @@ export class TimeBrush {
         this.dimensions.height = Math.max(100, this.dimensions.height);
         this.dimensions.width = Math.max(100, this.dimensions.width);
         this.resizeElements();
-        if (this._range) {
+        if (this._range && this._range.length) {
             this.brush.extent(<any>this._range);
             this.brush(d3.select(this.element.find(".brush")[0]));
         }
