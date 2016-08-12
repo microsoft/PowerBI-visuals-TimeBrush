@@ -1,11 +1,13 @@
 @import "./Base";
 @import "../../base/css/main";
 
-svg {
-    @extend .regularFont;
-    @extend .smallFontSize;
-}
+:local(.className) {
+  svg {
+      @extend %regularFont;
+      @extend %smallFontSize;
+  }
 
-.bars {
-  fill: rgba(0,100,200,.5);
+  .bars {
+    fill: rgba(0,100,200,.5);
+  }
 }

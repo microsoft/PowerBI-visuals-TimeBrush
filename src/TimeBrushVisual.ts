@@ -119,17 +119,16 @@ export default class TimeBrush extends VisualBase implements IVisual {
         </div>
     `;
 
-    /**
-     * Whether or not to include css
-     */
-    private noCss = false;
+    private myCssModule: any;
 
     /**
      * Constructor for the timebrush visual
      */
     constructor(noCss = false) {
-        super();
-        this.noCss = noCss;
+        super(noCss);
+        if (!noCss) {
+             this.myCssModule = require("!css!sass!./css/TimeBrushVisual.scss");
+        }
     }
 
     /**
@@ -222,6 +221,10 @@ export default class TimeBrush extends VisualBase implements IVisual {
     public init(options: VisualInitOptions): void {
         super.init(options);
         this.element.append($(this.template));
+        const className = this.myCssModule && this.myCssModule.locals && this.myCssModule.locals.className;
+        if (className) {
+            this.element.addClass(className);
+        }
         this.host = options.host;
         const dims = { width: options.viewport.width, height: options.viewport.height };
         this.timeBrush = new TimeBrushImpl(this.element.find(".timebrush"), dims);
@@ -321,7 +324,7 @@ export default class TimeBrush extends VisualBase implements IVisual {
      * Gets the inline css used for this element
      */
     protected getCss(): string[] {
-        return this.noCss ? [] : super.getCss().concat([require("!css!sass!./css/TimeBrushVisual.scss")]);
+        return this.myCssModule ? super.getCss().concat([this.myCssModule + ""]) : [];
     }
 
     /**

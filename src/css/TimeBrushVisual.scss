@@ -1,11 +1,14 @@
 @import "./Base";
 @import "../../node_modules/essex.powerbi.base/css/main";
+@import "../../node_modules/essex.powerbi.base/css/variables";
 
-svg {
-    @extend .regularFont;
-    @extend .smallFontSize;
-}
+:local(.className) {
+  svg {
+    @extend %regularFont;
+    @extend %smallFontSize;
+  }
 
-.bars {
-  fill: $dataColor1;
+  .bars {
+    fill: $dataColor1;
+  }
 }
