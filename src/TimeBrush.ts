@@ -218,8 +218,9 @@ export class TimeBrush {
             tmp.exit().remove();
         }
 
+        const svgWidth = width + margin.left + margin.right;
         this.svg
-            .attr("width", width + margin.left + margin.right)
+            .attr("width", svgWidth)
             .attr("height", height + margin.top + margin.bottom);
 
         this.clip
@@ -229,6 +230,31 @@ export class TimeBrush {
         this.xAxis
             .attr("transform", "translate(0," + height + ")")
             .call(d3.svg.axis().scale(this.x).orient("bottom").ticks(this.dimensions.width / TICK_WIDTH));
+
+        // Removes all overlapping/offscreen thangies
+        let dateTicks = this.xAxis
+            .selectAll(".tick");
+        for (let j = 0; j < dateTicks[0].length; j++) {
+            let c = dateTicks[0][j],
+            n = dateTicks[0][j + 1];
+            let cRect = c && c["getBoundingClientRect"]();
+            let nRect = n && n["getBoundingClientRect"]();
+            if (cRect && (cRect.right > svgWidth || cRect.left < 0)) {
+                d3.select(c).remove();
+                continue;
+            }
+            if (!cRect || !nRect) {
+                continue;
+            }
+            while (cRect.right > nRect.left) {
+                d3.select(n).remove();
+                j++;
+                n = dateTicks[0][j + 1];
+                if (!n) {
+                    break;
+                }
+            }
+        }
 
         this.context
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
