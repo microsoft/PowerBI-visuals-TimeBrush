@@ -51,7 +51,7 @@ export default class TimeBrush extends VisualBase implements IVisual {
         }, ],
         objects: {
             general: {
-                displayName: data.createDisplayNameGetter("Visual_General"),
+                displayName: "General",
                 properties: {
                     filter: {
                         type: { filter: {} },
