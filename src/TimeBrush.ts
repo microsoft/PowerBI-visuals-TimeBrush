@@ -250,6 +250,7 @@ export class TimeBrush {
                 d3.select(n).remove();
                 j++;
                 n = dateTicks[0][j + 1];
+                nRect = n && n["getBoundingClientRect"]();
                 if (!n) {
                     break;
                 }
