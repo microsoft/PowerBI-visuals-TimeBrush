@@ -41,7 +41,7 @@
     "css-loader": "0.23.1",
     "del": "2.2.0",
     "es6-promise": "^3.0.2",
-    "essex.powerbi.base": "~0.2.0",
+    "essex.powerbi.base": "^0.3.2",
     "exports-loader": "^0.6.2",
     "gulp": "3.9.0",
     "gulp-add-src": "^0.2.0",

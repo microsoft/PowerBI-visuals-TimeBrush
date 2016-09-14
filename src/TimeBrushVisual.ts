@@ -3,7 +3,7 @@ declare var _: any;
 import { TimeBrush as TimeBrushImpl, TimeBrushDataItem } from "./TimeBrush";
 
 import { VisualBase, Visual } from "essex.powerbi.base";
-import { default as Utils, updateTypeGetter, UpdateType } from "essex.powerbi.base/src/lib/Utils";
+import { updateTypeGetter, UpdateType } from "essex.powerbi.base/src/lib/Utils";
 import IVisual = powerbi.IVisual;
 import IVisualHostServices = powerbi.IVisualHostServices;
 import VisualCapabilities = powerbi.VisualCapabilities;
@@ -19,6 +19,7 @@ import data = powerbi.data;
 
 /* tslint:disable */
 const moment = require("moment");
+const MY_CSS_MODULE = require("!css!sass!./css/TimeBrushVisual.scss");
 /* tslint:enable */
 
 @Visual(require("./build").output.PowerBI)
@@ -111,23 +112,14 @@ export default class TimeBrush extends VisualBase implements IVisual {
     private clearSelectionOnDataChange = false;
 
     /**
-     * The template for the grid
-     */
-    private template: string = `
-        <div>
-            <div class="timebrush"></div>
-        </div>
-    `;
-
-    private myCssModule: any;
-
-    /**
      * Constructor for the timebrush visual
      */
     constructor(noCss = false) {
         super(noCss);
-        if (!noCss) {
-             this.myCssModule = require("!css!sass!./css/TimeBrushVisual.scss");
+
+        const className = MY_CSS_MODULE && MY_CSS_MODULE.locals && MY_CSS_MODULE.locals.className;
+        if (className) {
+            this.element.addClass(className);
         }
     }
 
@@ -220,11 +212,6 @@ export default class TimeBrush extends VisualBase implements IVisual {
     /** This is called once when the visual is initialially created */
     public init(options: VisualInitOptions): void {
         super.init(options);
-        this.element.append($(this.template));
-        const className = this.myCssModule && this.myCssModule.locals && this.myCssModule.locals.className;
-        if (className) {
-            this.element.addClass(className);
-        }
         this.host = options.host;
         const dims = { width: options.viewport.width, height: options.viewport.height };
         this.timeBrush = new TimeBrushImpl(this.element.find(".timebrush"), dims);
@@ -321,10 +308,17 @@ export default class TimeBrush extends VisualBase implements IVisual {
     }
 
     /**
+     * The template for the grid
+     */
+    public get template() {
+        return `<div><div class="timebrush"></div></div>`;
+    }
+
+    /**
      * Gets the inline css used for this element
      */
     protected getCss(): string[] {
-        return this.myCssModule ? super.getCss().concat([this.myCssModule + ""]) : [];
+        return (super.getCss() || []).concat([MY_CSS_MODULE]);
     }
 
     /**
