@@ -7,6 +7,8 @@ import * as d3 from "d3";
 
 const DEBOUNCE_TIME = 1000;
 const TICK_WIDTH = 100;
+const MINIMUM_WIDTH = 100;
+const MINIMUM_HEIGHT = 50;
 
 /**
  * Represents a timebrush
@@ -86,8 +88,8 @@ export class TimeBrush {
      */
     public set dimensions(value: any) {
         $.extend(this._dimensions, value);
-        this.dimensions.height = Math.max(100, this.dimensions.height);
-        this.dimensions.width = Math.max(100, this.dimensions.width);
+        this.dimensions.height = Math.max(MINIMUM_HEIGHT, this.dimensions.height);
+        this.dimensions.width = Math.max(MINIMUM_WIDTH, this.dimensions.width);
         this.resizeElements();
         if (this._range && this._range.length) {
             this.brush.extent(<any>this._range);
