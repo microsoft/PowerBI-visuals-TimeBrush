@@ -1,4 +1,6 @@
 import EventEmitter from "../base/EventEmitter";
+import { TimeBrushDataItem } from "./models";
+
 /* tslint:disable */
 const $ = require("jquery");
 /* tslint:enable */
@@ -95,6 +97,13 @@ export class TimeBrush {
             this.brush.extent(<any>this._range);
             this.brush(d3.select(this.element.find(".brush")[0]));
         }
+    }
+
+    /**
+     * Getter for selected range
+     */
+    public get selectedRange() {
+        return (this._range || []).slice(0) as [Date, Date];
     }
 
     /**
@@ -283,19 +292,4 @@ export class TimeBrush {
             .attr("fill", "lightgray")
             .attr("height", 30);
     }
-}
-
-/**
- * Represents a data item on a timescale
- */
-export interface TimeBrushDataItem {
-    /**
-     * The date of the time scale item
-     */
-    date: Date;
-
-    /**
-     * The value on the given date
-     */
-    value: number;
 }

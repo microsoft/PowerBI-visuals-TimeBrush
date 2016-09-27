@@ -3,9 +3,10 @@ import * as ReactDOM from "react-dom";
 /* tslint:disable */
 const $ = require("jquery");
 /* tsline:enable */
-import { TimeBrush as TimeBrushImpl, TimeBrushDataItem } from "./TimeBrush";
+import { TimeBrush as TimeBrushImpl } from "../TimeBrush";
+import { TimeBrushDataItem } from "../models";
 
-import "./css/TimeBrush.scss";
+import "../css/TimeBrush.scss";
 
 export interface TimeBrushProps {
     selectedRange?: [Date, Date];
