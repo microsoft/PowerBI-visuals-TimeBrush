@@ -51,6 +51,10 @@ describe("coerceDate", () => {
         let result = coerceDate(22);
         expect(result.getDate()).to.eq(22);
     });
+    it("should coerce -2200 as relative to the epoch", () => {
+        let result = coerceDate(-2200);
+        expect(result.getTime()).to.eq(-2200);
+    });
     it("should coerce a javascript date into itself", () => {
         let myDate = new Date();
         let result = coerceDate(myDate);

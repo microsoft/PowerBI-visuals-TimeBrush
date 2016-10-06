@@ -86,7 +86,7 @@ export function coerceDate(dateValue: any): Date {
         dateValue = new Date(dateValue, 0);
     } else if (dateValue >= 0 && dateValue <= 31) {
         dateValue = new Date(new Date().getFullYear(), 1, dateValue);
-    } else if (typeof dateValue === "number" && dateValue > 10000) {
+    } else if (typeof dateValue === "number" && (dateValue > 10000 || dateValue < 0)) {
         // Assume epoch
         dateValue = new Date(dateValue);
     }
