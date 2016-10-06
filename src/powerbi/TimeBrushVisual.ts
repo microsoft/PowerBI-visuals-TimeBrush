@@ -112,6 +112,11 @@ export default class TimeBrush extends VisualBase implements IVisual {
             const hasDataChanged = !!(updateType & UpdateType.Data);
             this.loadDataFromPowerBI(dataView, hasDataChanged);
             this.loadSelectedRangeFromPowerBI(dataView, hasDataChanged);
+
+
+            // Safari for some reason will not repaint after an dynamically added class, so we are adding this here 
+            // to ensure that safari repaints after an update
+            this.element.addClass("SAFARI_HACK").removeClass("SAFARI_HACK");
         }
     }
 
