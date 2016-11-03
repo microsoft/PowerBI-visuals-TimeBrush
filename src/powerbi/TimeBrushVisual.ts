@@ -29,7 +29,7 @@ import { TimeBrushVisualDataItem } from "./models";
 import { default as dataConverter, coerceDate } from "./dataConversion";
 
 import { VisualBase, Visual } from "essex.powerbi.base";
-import { updateTypeGetter, UpdateType } from "essex.powerbi.base/src/lib/Utils";
+import { updateTypeGetter, UpdateType } from "essex.powerbi.base";
 import IVisual = powerbi.IVisual;
 import IVisualHostServices = powerbi.IVisualHostServices;
 import VisualCapabilities = powerbi.VisualCapabilities;
@@ -40,6 +40,7 @@ import EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInst
 import DataViewCategoryColumn = powerbi.DataViewCategoryColumn;
 import data = powerbi.data;
 import capabilities from "./capabilities";
+import TimeBrushState from "./state";
 
 /* tslint:disable */
 const moment = require("moment");
@@ -65,27 +66,38 @@ export default class TimeBrush extends VisualBase implements IVisual {
     private _data: any[];
 
     /**
-     * Setting for clearing selection after data has changed
+     * The current dataview that we are looking at
      */
-    private clearSelectionOnDataChange = false;
+    private dataView: powerbi.DataView;
 
     /**
-     * Constructor for the timebrush visual
+     * The current state of the timebrush
      */
-    constructor(noCss = false) {
-        super(noCss);
-
-        const className = MY_CSS_MODULE && MY_CSS_MODULE.locals && MY_CSS_MODULE.locals.className;
-        if (className) {
-            this.element.addClass(className);
-        }
-    }
+    private state: TimeBrushState;
 
     /**
      * Returns a numerical value for a month
      */
     public static getMonthFromString(mon: string) {
         return new Date(Date.parse(mon + " 1, 2012")).getMonth() + 1;
+    }
+
+    /**
+     * Constructor for the timebrush visual
+     */
+    constructor(noCss = false) {
+        super("TimeBrush", noCss);
+
+        const className = MY_CSS_MODULE && MY_CSS_MODULE.locals && MY_CSS_MODULE.locals.className;
+        if (className) {
+            this.element.addClass(className);
+        }
+
+        VisualBase.DEFAULT_SANDBOX_ENABLED = false;
+        this.state = TimeBrushState.create<TimeBrushState>();
+
+        // HACK: PowerBI Swallows these events unless we prevent propagation upwards
+        this.element.on("mousedown", (e: any) => e.stopPropagation());
     }
 
     /** This is called once when the visual is initialially created */
@@ -107,34 +119,35 @@ export default class TimeBrush extends VisualBase implements IVisual {
             this.timeBrush.dimensions = { width: options.viewport.width, height: options.viewport.height };
         }
 
-        let dataView = options.dataViews && options.dataViews[0];
+        let dataView = this.dataView = options.dataViews && options.dataViews[0];
+
+        const newState = this.state.receiveFromPBI(dataView);
+
         if (dataView) {
             const hasDataChanged = !!(updateType & UpdateType.Data);
-            this.loadDataFromPowerBI(dataView, hasDataChanged);
-            this.loadSelectedRangeFromPowerBI(dataView, hasDataChanged);
+            this.loadDataFromPowerBI(dataView, hasDataChanged, newState);
+            this.loadSelectedRangeFromPowerBI(dataView, hasDataChanged, newState);
 
-
-            // Safari for some reason will not repaint after an dynamically added class, so we are adding this here 
+            // Safari for some reason will not repaint after an dynamically added class, so we are adding this here
             // to ensure that safari repaints after an update
             this.element.addClass("SAFARI_HACK").removeClass("SAFARI_HACK");
         }
+
+        if (updateType & UpdateType.Settings) {
+            if (newState.barWidth !== this.state.barWidth) {
+                this.timeBrush.barWidth = newState.barWidth;
+            }
+        }
+
+        this.state = newState;
     }
 
     /**
      * Enumerates the instances for the objects that appear in the power bi panel
      */
     public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstance[] {
-        let instances = super.enumerateObjectInstances(options) || [{
-            selector: null,
-            objectName: options.objectName,
-            properties: {},
-        }, ];
-        if (options.objectName === "selection") {
-            instances[0].properties = {
-                clearSelectionAfterDataChange: this.clearSelectionOnDataChange
-            };
-        }
-        return instances;
+        let instances = (super.enumerateObjectInstances(options) || []) as VisualObjectInstance[];
+        return instances.concat(this.state.buildEnumerationObjects(options.objectName, this.dataView));
     }
 
     /**
@@ -154,10 +167,10 @@ export default class TimeBrush extends VisualBase implements IVisual {
     /**
      * Loads the data from power bi
      */
-    private loadDataFromPowerBI(dataView: powerbi.DataView, hasDataChanged: boolean) {
-        if (hasDataChanged) {
+    private loadDataFromPowerBI(dataView: powerbi.DataView, hasDataChanged: boolean, state: TimeBrushState) {
+        if (hasDataChanged || hasColorSettingsChanged(this.state, state)) {
             let dataViewCategorical = dataView.categorical;
-            let data = dataConverter(dataView);
+            let data = dataConverter(dataView, state);
             this._data = data;
             // Stash this bad boy for later, so we can filter the time column
             if (dataViewCategorical && dataViewCategorical.categories) {
@@ -170,13 +183,11 @@ export default class TimeBrush extends VisualBase implements IVisual {
     /**
      * Loads the selected range from powerbi
      */
-    private loadSelectedRangeFromPowerBI(dataView: powerbi.DataView, hasDataChanged: boolean) {
+    private loadSelectedRangeFromPowerBI(dataView: powerbi.DataView, hasDataChanged: boolean, state: TimeBrushState) {
         let startDate: Date;
         let endDate: Date;
         const objects: any = ldget(dataView, "metadata.objects", undefined);
         // Set the selection option
-        const newSelection = ldget(objects, "selection.clearSelectionAfterDataChange", undefined);
-        this.clearSelectionOnDataChange = typeof newSelection !== "undefined" ? !!newSelection : true;
         const oldFilter = ldget(objects, "general.filter.whereItems[0].condition", undefined) as data.SQBetweenExpr;
         if (oldFilter) {
             let dataSourceChanged = hasDataChanged;
@@ -193,7 +204,7 @@ export default class TimeBrush extends VisualBase implements IVisual {
             }
 
             // If the user indicates whether or not to clear the selection when the underlying dataset has changed
-            let updateSelection = !dataSourceChanged || !this.clearSelectionOnDataChange;
+            let updateSelection = !dataSourceChanged || !state.clearSelectionOnDataChange;
             if (updateSelection) {
                 let filterStartDate = (<data.SQConstantExpr>oldFilter.lower).value;
                 let filterEndDate = (<data.SQConstantExpr>oldFilter.upper).value;
@@ -215,7 +226,7 @@ export default class TimeBrush extends VisualBase implements IVisual {
                         objectName: "general",
                         selector: undefined,
                         properties: { filter: undefined },
-                    }, ],
+                    }],
                 });
             }
         }
@@ -256,18 +267,18 @@ export default class TimeBrush extends VisualBase implements IVisual {
             objectName: "general",
             selector: undefined,
             properties: {
-                "filter": filter
+                "filter": filter,
             },
         };
 
         let objects: powerbi.VisualObjectInstancesToPersist = { };
         if (filter) {
             $.extend(objects, {
-                merge: [instance]
+                merge: [instance],
             });
         } else {
             $.extend(objects, {
-                remove: [instance]
+                remove: [instance],
             });
         }
 
@@ -275,6 +286,31 @@ export default class TimeBrush extends VisualBase implements IVisual {
         this.host.persistProperties(objects);
 
         // Hack from timeline.ts
-        this.host.onSelect({ data: [] });
+        this.host.onSelect(<any>{ data: [] });
     }
+}
+
+/**
+ * Returns true if any of the color settings have changed.
+ */
+function hasColorSettingsChanged(state: TimeBrushState, newState: TimeBrushState) {
+    "use strict";
+    if (state && newState) {
+        let changed = state.useGradient !== newState.useGradient ||
+            state.endColor !== newState.endColor ||
+            state.defaultBarColor !== newState.defaultBarColor ||
+            state.startColor !== newState.startColor ||
+            state.reverseBars !== newState.reverseBars ||
+            state.endValue !== newState.endValue ||
+            state.startValue !== newState.startValue;
+        if (!changed) {
+            const oldSeriesColors = state.seriesColors || [];
+            const newSeriesColors = newState.seriesColors || [];
+            const mapper = (n: any, i: number) => ({ name: n.name, color: n.color, id: (n.identity && n.identity.key) || i });
+            return oldSeriesColors.length !== newSeriesColors.length ||
+                !_.isEqual(oldSeriesColors.map(mapper), newSeriesColors.map(mapper));
+        }
+        return changed;
+    }
+    return true;
 }

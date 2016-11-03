@@ -24,29 +24,51 @@
 
 import VisualDataRoleKind = powerbi.VisualDataRoleKind;
 import VisualCapabilities = powerbi.VisualCapabilities;
+import TimeBrushState from "./state";
 export default {
-    dataRoles: [{
-        name: "Times",
-        kind: VisualDataRoleKind.Grouping,
-        displayName: "Time",
-    }, {
-        name: "Values",
-        kind: VisualDataRoleKind.Measure,
-        displayName: "Values",
-    }, ],
+    dataRoles: [
+        {
+            name: "Times",
+            kind: VisualDataRoleKind.Grouping,
+            displayName: "Time",
+        }, {
+            name: "Values",
+            kind: VisualDataRoleKind.Measure,
+            requiredTypes: [{ numeric: true }, { integer: true }],
+            displayName: "With Values",
+        }, {
+            name: "Series",
+            kind: VisualDataRoleKind.Grouping,
+            displayName: "Aggregated By",
+        },
+    ],
     dataViewMappings: [{
+        conditions: [
+            { "Times": { max: 1 }, "Series": { max: 0 }},
+            { "Times": { max: 1 }, "Series": { max: 0 }, "Values": { max: 1, min: 0 }},
+            { "Times": { max: 1 }, "Series": { min: 1, max: 1 }, "Values": { max: 1, min: 1 }},
+            { "Times": { max: 1 }, "Series": { max: 0 }, "Values": { min: 0 }},
+        ],
         categorical: {
+            dataVolume: 4,
             categories: {
                 for: { in: "Times" },
-                dataReductionAlgorithm: { top: {} },
+                dataReductionAlgorithm: { sample: {} },
             },
             values: {
-                select: [{ bind: { to: "Values" } }]
+                group: {
+                    by: "Series",
+                    select: [{ for: { in: "Values" }}],
+                    dataReductionAlgorithm:  { top: { } },
+                },
             },
+            rowCount: { preferred: { min: 2 }, supported: { min: 0 } },
         },
-        conditions: [{ "Times": { max: 1, min: 0 }, "Values": { max: 1, min: 0 } }],
-    }, ],
-    objects: {
+    }],
+    sorting: {
+        default: {},
+    },
+    objects: $.extend({
         general: {
             displayName: "General",
             properties: {
@@ -61,15 +83,5 @@ export default {
                 },
             },
         },
-        selection: {
-            displayName: "Selection",
-            properties: {
-                clearSelectionAfterDataChange: {
-                    displayName: "Clear selection after data changed",
-                    description: "Setting this to true will clear the selection after the data is changed",
-                    type: { bool: true },
-                },
-            },
-        },
-    },
+    }, TimeBrushState.buildCapabilitiesObjects()),
 } as VisualCapabilities;

@@ -24,6 +24,7 @@
 
 import { TimeBrushDataItem } from "../models";
 import SelectionId = powerbi.visuals.SelectionId;
+import { IColoredObject } from "essex.powerbi.base";
 
 /**
  * The data item used by the TimeBrushVisual
@@ -39,4 +40,14 @@ export interface TimeBrushVisualDataItem extends TimeBrushDataItem {
      * The raw unparsed date for this item
      */
     rawDate: any;
+}
+
+export interface IColorSettings {
+    defaultBarColor?: string;
+    seriesColors?: IColoredObject[];
+    useGradient?: boolean;
+    startColor?: string;
+    startValue?: number;
+    endColor?: string;
+    endValue?: number;
 }

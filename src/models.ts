@@ -35,4 +35,22 @@ export interface TimeBrushDataItem {
      * The value on the given date
      */
     value: number;
+
+    /**
+     * The segments which make up the value
+     */
+    valueSegments: TimeBrushValueSegment[];
+}
+
+export interface TimeBrushValueSegment {
+
+    /**
+     * The percentage of the width that this segment should take up
+     */
+    value: number;
+
+    /**
+     * The color of this segment
+     */
+    color: string;
 }

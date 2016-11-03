@@ -22,16 +22,14 @@
  * SOFTWARE.
  */
 
-import { Utils as SpecUtils } from "essex.powerbi.base/spec/visualHelpers";
+import * as $ from "jquery";
+import { Utils as SpecUtils } from "essex.powerbi.base/dist/spec/visualHelpers";
 import { expect } from "chai";
 import TimeBrushVisual from "./TimeBrushVisual";
-import * as $ from "jquery";
 
 describe("TimeBrushVisual", () => {
     let parentEle: JQuery;
     beforeEach(() => {
-        global["d3"] = require("d3");
-        global["_"] = require("underscore");
         parentEle = $("<div></div>");
     });
 

@@ -25,12 +25,11 @@
 import { expect } from "chai";
 import { TimeBrush } from "./TimeBrush";
 import { TimeBrushDataItem } from "./models";
+import * as d3 from "d3";
+import * as $ from "jquery";
 describe("TimeBrush", () => {
     let parentEle: JQuery;
     beforeEach(() => {
-        global["d3"] = require("d3");
-        global["_"] = require("underscore");
-        global["$"] = require("jquery");
         parentEle = $("<div></div>");
     });
 
@@ -44,18 +43,34 @@ describe("TimeBrush", () => {
     const SIMPLE_FAKE_DATA = [{
         date: new Date(2015, 1, 1),
         value: 20,
+        valueSegments: [{
+            value: 100,
+            color: "red",
+        }],
     }, {
         date: new Date(2016, 1, 1),
         value: 60,
-    }, ];
+        valueSegments: [{
+            value: 100,
+            color: "red",
+        }],
+    }];
 
     const SIMPLE_FAKE_DATA_2 = [{
         date: new Date(2015, 2, 2),
         value: 200,
+        valueSegments: [{
+            value: 100,
+            color: "red",
+        }],
     }, {
         date: new Date(2106, 2, 2),
         value: 600,
-    }, ];
+        valueSegments: [{
+            value: 100,
+            color: "red",
+        }],
+    }];
 
     const createInstance = () => {
         const element = $("<div>");

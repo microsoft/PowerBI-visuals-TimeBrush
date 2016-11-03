@@ -55,6 +55,9 @@ export class TimeBrush {
     private _eventEmitter = new EventEmitter();
     private _data: TimeBrushDataItem[];
     private _range: [Date, Date];
+    private defs: d3.Selection<any>;
+    private bars: d3.Selection<any>;
+    private _barWidth = 2;
 
     /**
      * Constructor for the timebrush
@@ -107,6 +110,21 @@ export class TimeBrush {
      */
     public get dimensions() {
         return this._dimensions;
+    }
+
+    /**
+     * Gets the bar width
+     */
+    public get barWidth() {
+        return this._barWidth;
+    }
+
+    /**
+     * Sets the bar width
+     */
+    public set barWidth(value: number) {
+        this._barWidth = value || 2;
+        this.resizeElements();
     }
 
     /**
@@ -169,15 +187,14 @@ export class TimeBrush {
         }
     }
 
-    private bars: d3.Selection<any>;
-
     /**
      * Builds the initial timescale
      */
     private buildTimeScale() {
         this.svg = d3.select(this.element[0]).append("svg");
 
-        this.clip = this.svg.append("defs").append("clipPath")
+        this.defs = this.svg.append("defs");
+        this.clip = this.defs.append("clipPath")
             .attr("id", "clip")
             .append("rect");
 
@@ -231,13 +248,21 @@ export class TimeBrush {
             width = this._dimensions.width - margin.left - margin.right,
             height = this._dimensions.height - margin.top - margin.bottom;
 
+        const actualDims = this.element[0].getBoundingClientRect();
+        const actualWidth = actualDims.right - actualDims.left;
+
+        // Default to 1 if we have no data
+        let scale = actualWidth > 0 && this.dimensions.width > 0 ? this.dimensions.width / actualWidth : 1;
+
         this.x.range([0, <any>width]);
         this.y.range([height, 0]);
 
         if (this.bars && this._data) {
+            const barWidth = this.barWidth || 2;
             let tmp = this.bars
                 .selectAll("rect")
                 .data(this._data);
+
             tmp
                 .enter().append("rect");
 
@@ -245,18 +270,78 @@ export class TimeBrush {
                 .attr("transform", (d, i) => {
                     let rectHeight = this.y(0) - this.y(d.value);
                     let x = this.x(d.date) || 0;
-                    return `translate(${x},${height - rectHeight})`;
+                    return `translate(${(x - (barWidth / 2))},${height - rectHeight})`;
                 })
-                .attr("width", 2)
+                .attr("fill", (d, i) => {
+                    return `url(${this.element[0].ownerDocument.URL || ""}#rect_gradient_${i})`;
+                })
+                .attr("width", barWidth)
                 .attr("height", (d) => Math.max(0, this.y(0) - this.y(d.value)));
 
             tmp.exit().remove();
         }
 
+        if (this._data) {
+            const gradients =
+                this.defs.selectAll("linearGradient")
+                    .data(this._data);
+            gradients.enter()
+                .append("linearGradient")
+                .attr("id", (d, i) => "rect_gradient_" + i)
+                .attr({
+                    x1: 0,
+                    x2: 0,
+                    y1: 1,
+                    y2: 0,
+                });
+
+            gradients.exit().remove();
+            gradients
+                .attr("id", (d, i) => "rect_gradient_" + i);
+
+            const stops = gradients.selectAll("stop")
+                .data((d) => {
+                    const stops: any[] = [];
+                    const segments = d.valueSegments;
+                    let offset = 0;
+                    segments.forEach((n, i) => {
+                        stops.push({
+                            offset: (offset + (i > 0 ? .0001 : 0)) + "%",
+                            color: n.color,
+                        });
+
+                        offset += n.value;
+
+                        if (i < segments.length - 1) {
+                            stops.push({
+                                offset: offset + "%",
+                                color: n.color,
+                            });
+                        }
+                    });
+                    return stops;
+                });
+            stops.enter().append("stop");
+            stops
+                .attr({
+                    offset: (d) => d.offset,
+                    "stop-color": (d) => d.color,
+                });
+            stops.exit().remove();
+        }
+
+        // This translates the scaling done by PBI from css scaling to svg scaling.
         const svgWidth = width + margin.left + margin.right;
+        const svgHeight = height + margin.top + margin.bottom;
+        const invertScale = 1 / scale;
+        const renderedWidth = svgWidth * invertScale;
+        const renderedHeight = svgHeight * invertScale;
+        const translateX = (renderedWidth - svgWidth) / 2;
+        const translateY = (renderedHeight - svgHeight) / 2;
         this.svg
-            .attr("width", svgWidth)
-            .attr("height", height + margin.top + margin.bottom);
+            .attr("width", renderedWidth)
+            .attr("height", renderedHeight)
+            .attr("style", `transform:translate(-${translateX}px, -${translateY}px) scale(${scale}, ${scale})`);
 
         this.clip
             .attr("width", width)
@@ -267,14 +352,15 @@ export class TimeBrush {
             .call(d3.svg.axis().scale(this.x).orient("bottom").ticks(this.dimensions.width / TICK_WIDTH));
 
         // Removes all overlapping/offscreen thangies
+        let svgInfo = (this.svg.node() as Element).getBoundingClientRect();
         let dateTicks = this.xAxis
             .selectAll(".tick");
         for (let j = 0; j < dateTicks[0].length; j++) {
-            let c = dateTicks[0][j],
-            n = dateTicks[0][j + 1];
-            let cRect = c && c["getBoundingClientRect"]();
-            let nRect = n && n["getBoundingClientRect"]();
-            if (cRect && (cRect.right > svgWidth || cRect.left < 0)) {
+            let c = dateTicks[0][j] as Element,
+            n = dateTicks[0][j + 1] as Element;
+            let cRect = c && c.getBoundingClientRect();
+            let nRect = n && n.getBoundingClientRect();
+            if (cRect && (cRect.right > svgInfo.right || cRect.left < svgInfo.left)) {
                 d3.select(c).remove();
                 continue;
             }
@@ -284,8 +370,8 @@ export class TimeBrush {
             while (cRect.right > nRect.left) {
                 d3.select(n).remove();
                 j++;
-                n = dateTicks[0][j + 1];
-                nRect = n && n["getBoundingClientRect"]();
+                n = dateTicks[0][j + 1] as Element;
+                nRect = n && n.getBoundingClientRect();
                 if (!n) {
                     break;
                 }
@@ -293,7 +379,7 @@ export class TimeBrush {
         }
 
         this.context
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+            .attr("transform", `scale(${invertScale}, ${invertScale}) translate(${margin.left},${margin.top})`);
 
         this.brush.x(<any>this.x);
 
