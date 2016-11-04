@@ -23,42 +23,41 @@
  */
 
 declare var _: any;
+import { StatefulVisual } from "pbi-stateful/src/StatefulVisual";
 
 import { TimeBrush as TimeBrushImpl } from "../TimeBrush";
 import { TimeBrushVisualDataItem } from "./models";
 import { default as dataConverter, coerceDate } from "./dataConversion";
 
-import { VisualBase, Visual } from "essex.powerbi.base";
-import { updateTypeGetter, UpdateType } from "essex.powerbi.base";
-import IVisual = powerbi.IVisual;
+import {
+    Visual,
+    IDimensions,
+    receiveDimensions,
+    capabilities,
+    UpdateType,
+} from "essex.powerbi.base";
 import IVisualHostServices = powerbi.IVisualHostServices;
-import VisualCapabilities = powerbi.VisualCapabilities;
 import VisualInitOptions = powerbi.VisualInitOptions;
 import VisualUpdateOptions = powerbi.VisualUpdateOptions;
 import VisualObjectInstance = powerbi.VisualObjectInstance;
 import EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInstancesOptions;
 import DataViewCategoryColumn = powerbi.DataViewCategoryColumn;
 import data = powerbi.data;
-import capabilities from "./capabilities";
+import myCapabilities from "./capabilities";
 import TimeBrushState from "./state";
 
 /* tslint:disable */
-const moment = require("moment");
 const MY_CSS_MODULE = require("!css!sass!./css/TimeBrushVisual.scss");
 const ldget = require("lodash/get");
 /* tslint:enable */
 
 @Visual(require("../build").output.PowerBI)
-export default class TimeBrush extends VisualBase implements IVisual {
-
-    /**
-     * The set of capabilities for the visual
-     */
-    public static capabilities: VisualCapabilities = capabilities;
+@receiveDimensions
+@capabilities(myCapabilities)
+export default class TimeBrush extends StatefulVisual<TimeBrushState> {
     private host: IVisualHostServices;
     private timeColumn: DataViewCategoryColumn;
     private timeBrush: TimeBrushImpl;
-    private updateType = updateTypeGetter(this);
 
     /**
      * The current data set
@@ -69,11 +68,6 @@ export default class TimeBrush extends VisualBase implements IVisual {
      * The current dataview that we are looking at
      */
     private dataView: powerbi.DataView;
-
-    /**
-     * The current state of the timebrush
-     */
-    private state: TimeBrushState;
 
     /**
      * Returns a numerical value for a month
@@ -93,7 +87,6 @@ export default class TimeBrush extends VisualBase implements IVisual {
             this.element.addClass(className);
         }
 
-        VisualBase.DEFAULT_SANDBOX_ENABLED = false;
         this.state = TimeBrushState.create<TimeBrushState>();
 
         // HACK: PowerBI Swallows these events unless we prevent propagation upwards
@@ -101,7 +94,7 @@ export default class TimeBrush extends VisualBase implements IVisual {
     }
 
     /** This is called once when the visual is initialially created */
-    public init(options: VisualInitOptions): void {
+    protected onInit(options: VisualInitOptions): void {
         super.init(options);
         this.host = options.host;
         const dims = { width: options.viewport.width, height: options.viewport.height };
@@ -110,14 +103,8 @@ export default class TimeBrush extends VisualBase implements IVisual {
     }
 
     /** Update is called for data updates, resizes & formatting changes */
-    public update(options: VisualUpdateOptions) {
-        const updateType = this.updateType();
+    protected onUpdate(options: VisualUpdateOptions, updateType: UpdateType) {
         super.update(options);
-
-        // If the dimensions changed
-        if (updateType & UpdateType.Resize) {
-            this.timeBrush.dimensions = { width: options.viewport.width, height: options.viewport.height };
-        }
 
         let dataView = this.dataView = options.dataViews && options.dataViews[0];
 
@@ -140,6 +127,27 @@ export default class TimeBrush extends VisualBase implements IVisual {
         }
 
         this.state = newState;
+    }
+    /**
+     * Called when the dimensions of the visual have changed
+     */
+    public setDimensions(value: IDimensions) {
+        if (this.timeBrush) {
+            this.timeBrush.dimensions = value;
+        }
+    }
+
+    protected getCustomCssModules() {
+        return [MY_CSS_MODULE];
+    }
+
+    protected generateState() {
+        const result = new TimeBrushState();
+        return result;
+    }
+
+    protected onSetState(state: TimeBrushState) {
+        // TODO        
     }
 
     /**
@@ -266,9 +274,7 @@ export default class TimeBrush extends VisualBase implements IVisual {
         let instance =  <powerbi.VisualObjectInstance>{
             objectName: "general",
             selector: undefined,
-            properties: {
-                "filter": filter,
-            },
+            properties: { filter },
         };
 
         let objects: powerbi.VisualObjectInstancesToPersist = { };
