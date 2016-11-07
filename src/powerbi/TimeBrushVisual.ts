@@ -95,7 +95,6 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
 
     /** This is called once when the visual is initialially created */
     protected onInit(options: VisualInitOptions): void {
-        super.init(options);
         this.host = options.host;
         const dims = { width: options.viewport.width, height: options.viewport.height };
         this.timeBrush = new TimeBrushImpl(this.element.find(".timebrush"), dims);
@@ -104,10 +103,7 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
 
     /** Update is called for data updates, resizes & formatting changes */
     protected onUpdate(options: VisualUpdateOptions, updateType: UpdateType) {
-        super.update(options);
-
         let dataView = this.dataView = options.dataViews && options.dataViews[0];
-
         const newState = this.state.receiveFromPBI(dataView);
 
         if (dataView) {
@@ -147,7 +143,10 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
     }
 
     protected onSetState(state: TimeBrushState) {
-        // TODO        
+        console.log("ONSETSTATE", state);
+        if (!this.areEqual(state, this.state)) {
+            console.log("INJECTING TB STATE");
+        }
     }
 
     /**
@@ -229,6 +228,7 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
                 }
             } else {
                 // Remove the filter completely from PBI
+                console.log("PP 1!");
                 this.host.persistProperties({
                     remove: [{
                         objectName: "general",
@@ -287,7 +287,6 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
                 remove: [instance],
             });
         }
-
 
         this.host.persistProperties(objects);
 
