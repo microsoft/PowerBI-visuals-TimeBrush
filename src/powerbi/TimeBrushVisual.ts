@@ -87,8 +87,6 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
             this.element.addClass(className);
         }
 
-        this.state = TimeBrushState.create<TimeBrushState>();
-
         // HACK: PowerBI Swallows these events unless we prevent propagation upwards
         this.element.on("mousedown", (e: any) => e.stopPropagation());
     }
@@ -98,7 +96,7 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
         this.host = options.host;
         const dims = { width: options.viewport.width, height: options.viewport.height };
         this.timeBrush = new TimeBrushImpl(this.element.find(".timebrush"), dims);
-        this.timeBrush.events.on("rangeSelected", (range: Date[], items: any[]) => this.onTimeRangeSelected(range, items));
+        this.timeBrush.events.on("rangeSelected", this.onTimeRangeSelected.bind(this));
     }
 
     /** Update is called for data updates, resizes & formatting changes */
@@ -138,14 +136,23 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
     }
 
     protected generateState() {
-        const result = new TimeBrushState();
-        return result;
+        return TimeBrushState.create<TimeBrushState>();
     }
 
     protected onSetState(state: TimeBrushState) {
-        console.log("ONSETSTATE", state);
-        if (!this.areEqual(state, this.state)) {
-            console.log("INJECTING TB STATE");
+        if (this.timeBrush && state) {
+            const currentRange = this.timeBrush.selectedRange;
+            const isCurrentRangeSet = currentRange && currentRange.length === 2;
+            const isStateRangeSet = state.startValue && state.endValue;
+            const isRangeBeingSet = !isCurrentRangeSet && isStateRangeSet;
+            const isRangeChanging = isCurrentRangeSet && isStateRangeSet;
+            const isRangeBeingUnset = isCurrentRangeSet && !isStateRangeSet;
+
+            if (isRangeBeingSet || isRangeChanging) {
+                this.timeBrush.selectedRange = [new Date(state.startValue), new Date(state.endValue)];
+            } else if (isRangeBeingUnset) {
+                this.timeBrush.selectedRange = [] as any;
+            }
         }
     }
 
@@ -219,16 +226,12 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
                 endDate = coerceDate(filterEndDate);
 
                 // If the selection has changed at all, then set it
-                let currentSelection = this.timeBrush.selectedRange;
-                if (!currentSelection ||
-                    currentSelection.length !== 2 ||
-                    startDate !== currentSelection[0] ||
-                    endDate !== currentSelection[1]) {
-                    this.timeBrush.selectedRange = [startDate, endDate];
-                }
+                this.state = this.state.receive({
+                    startValue: startDate && startDate.getTime(),
+                    endValue: endDate && endDate.getTime(),
+                });
             } else {
                 // Remove the filter completely from PBI
-                console.log("PP 1!");
                 this.host.persistProperties({
                     remove: [{
                         objectName: "general",
@@ -289,9 +292,9 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
         }
 
         this.host.persistProperties(objects);
-
         // Hack from timeline.ts
         this.host.onSelect(<any>{ data: [] });
+        this.state = this.state.receive({startValue: range[0] && range[0].getTime(), endValue: range[1] && range[1].getTime()});
     }
 }
 
