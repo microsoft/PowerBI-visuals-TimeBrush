@@ -7,7 +7,7 @@ import {
     numberSetting as num,
     boolSetting as bool,
 } from "essex.powerbi.base";
-import { IColorSettings } from "./models";
+import { IColorSettings, TimeBrushVisualDataItem } from "./models";
 import { dataSupportsDefaultColor, dataSupportsColorizedInstances, dataSupportsGradients } from "./dataConversion";
 const fullColors = colors.full;
 
@@ -133,5 +133,5 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
     /**
      * The selected time range
      */
-    public range: [Date, Date];
+    public rangeItems: [TimeBrushVisualDataItem, TimeBrushVisualDataItem]; // the physical boundary items the range maps to
 }

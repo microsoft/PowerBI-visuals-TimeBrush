@@ -28,7 +28,9 @@ import { StatefulVisual } from "pbi-stateful/src/StatefulVisual";
 import { TimeBrush as TimeBrushImpl } from "../TimeBrush";
 import { TimeBrushVisualDataItem } from "./models";
 import { default as dataConverter, coerceDate } from "./dataConversion";
-
+import {
+    publishChange,
+} from "pbi-stateful/src/stateful";
 import {
     Visual,
     IDimensions,
@@ -143,19 +145,28 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
 
     protected onSetState(state: TimeBrushState) {
         if (this.timeBrush && state) {
+            // Incoming state has been json-serialized/deserialized. Dates are ISO string.
+            state.rangeItems = state.rangeItems || [] as [TimeBrushVisualDataItem, TimeBrushVisualDataItem];
+            state.rangeItems.forEach((ri: TimeBrushVisualDataItem) => {
+                ri.date = new Date(ri.date as any);
+            });
+
+            // Figure out what's happening
             const currentRange = this.timeBrush.selectedRange;
             const isCurrentRangeSet = currentRange && currentRange.length === 2;
-            const isStateRangeSet = state.range && state.range.length === 2 && state.range[0] && state.range[1];
+            const isStateRangeSet = state.rangeItems && state.rangeItems.length === 2 && state.rangeItems[0] && state.rangeItems[1];
             const isRangeBeingSet = !isCurrentRangeSet && isStateRangeSet;
             const isRangeChanging = isCurrentRangeSet && isStateRangeSet;
             const isRangeBeingUnset = isCurrentRangeSet && !isStateRangeSet;
-            state.range = (<any>state.range).map((d: string) => new Date(d)); // Dates have been serializde to strings in argument
 
+            // Update the Time Brush
             if (isRangeBeingSet || isRangeChanging) {
-                this.timeBrush.selectedRange = state.range;
+                this.timeBrush.selectedRange = state.rangeItems.map((ri: TimeBrushVisualDataItem) => ri.date) as [Date, Date];
             } else if (isRangeBeingUnset) {
                 this.timeBrush.selectedRange = [] as any;
             }
+            
+            // Update the internal state
             this._internalState = this._internalState.receive(state);
         }
     }
@@ -229,13 +240,14 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
                 startDate = coerceDate(filterStartDate);
                 endDate = coerceDate(filterEndDate);
 
-                let range: Date[] = [];
+                let range: [Date, Date] = [] as [Date, Date];
                 if (startDate && endDate) {
                     range = [startDate, endDate];
                 }
 
                 // If the selection has changed at all, then set it
-                this.state = this._internalState.receive({ range }).toJSONObject();
+                this.timeBrush.selectedRange = range;
+                // TODO: should the state be set here?
             } else {
                 // Remove the filter completely from PBI
                 this.host.persistProperties({
@@ -300,7 +312,9 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
         this.host.persistProperties(objects);
         // Hack from timeline.ts
         this.host.onSelect(<any>{ data: [] });
-        this.state = this._internalState.receive({ range }).toJSONObject();
+        this.state = this._internalState.receive({ rangeItems: items }).toJSONObject();
+        let label = `Select range ${range[0].toLocaleDateString()} - ${range[1].toLocaleDateString()}`;
+        publishChange(this, label, this.state);
     }
 }
 
