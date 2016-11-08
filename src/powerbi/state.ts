@@ -58,7 +58,7 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
         defaultValue: false,
         enumerable: (s, dataView) => dataSupportsGradients(dataView),
     })
-    public useGradient?: boolean;
+    public useGradient: boolean;
 
     /**
      * If the gradient color scheme should be used when coloring the values in the slicer
@@ -70,7 +70,7 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
         enumerable: (s, dataView) => dataSupportsGradients(dataView) && s.useGradient,
         defaultValue: "#bac2ff",
     })
-    public startColor?: string;
+    public startColor: string;
 
     /**
      * If the gradient color scheme should be used when coloring the values in the slicer
@@ -82,7 +82,7 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
         enumerable: (s, dataView) => dataSupportsGradients(dataView) && s.useGradient,
         defaultValue: "#0229bf",
     })
-    public endColor?: string;
+    public endColor: string;
 
     /**
      * The value to use as the start color
@@ -93,7 +93,7 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
         description: "The value to use as the start color",
         enumerable: (s, dataView) => dataSupportsGradients(dataView) && s.useGradient,
     })
-    public startValue?: number;
+    public startValue: number;
 
     /**
      * The value to use as the end color
@@ -104,7 +104,7 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
         description: "The value to use as the end color",
         enumerable: (s, dataView) => dataSupportsGradients(dataView) && s.useGradient,
     })
-    public endValue?: number;
+    public endValue: number;
 
     /**
      * If the order of the bars in the display should be reversed
@@ -115,7 +115,7 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
         description: "If true, the bar display order will be reversed",
         defaultValue: false,
     })
-    public reverseBars?: boolean;
+    public reverseBars: boolean;
 
     /**
      * The size of the bars
@@ -128,5 +128,10 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
         min: .01,
         max: 100,
     })
-    public barWidth?: number;
+    public barWidth: number;
+
+    /**
+     * The selected time range
+     */
+    public range: [Date, Date];
 }

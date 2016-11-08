@@ -145,16 +145,18 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
         if (this.timeBrush && state) {
             const currentRange = this.timeBrush.selectedRange;
             const isCurrentRangeSet = currentRange && currentRange.length === 2;
-            const isStateRangeSet = state.startValue && state.endValue;
+            const isStateRangeSet = state.range && state.range.length === 2 && state.range[0] && state.range[1];
             const isRangeBeingSet = !isCurrentRangeSet && isStateRangeSet;
             const isRangeChanging = isCurrentRangeSet && isStateRangeSet;
             const isRangeBeingUnset = isCurrentRangeSet && !isStateRangeSet;
+            state.range = (<any>state.range).map((d: string) => new Date(d)); // Dates have been serializde to strings in argument
 
             if (isRangeBeingSet || isRangeChanging) {
-                this.timeBrush.selectedRange = [new Date(state.startValue), new Date(state.endValue)];
+                this.timeBrush.selectedRange = state.range;
             } else if (isRangeBeingUnset) {
                 this.timeBrush.selectedRange = [] as any;
             }
+            this._internalState = this._internalState.receive(state);
         }
     }
 
@@ -227,11 +229,13 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
                 startDate = coerceDate(filterStartDate);
                 endDate = coerceDate(filterEndDate);
 
+                let range: Date[] = [];
+                if (startDate && endDate) {
+                    range = [startDate, endDate];
+                }
+
                 // If the selection has changed at all, then set it
-                this.state = this._internalState.receive({
-                    startValue: startDate && startDate.getTime(),
-                    endValue: endDate && endDate.getTime(),
-                }).toJSONObject();
+                this.state = this._internalState.receive({ range }).toJSONObject();
             } else {
                 // Remove the filter completely from PBI
                 this.host.persistProperties({
@@ -296,10 +300,7 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
         this.host.persistProperties(objects);
         // Hack from timeline.ts
         this.host.onSelect(<any>{ data: [] });
-        this.state = this._internalState.receive({
-            startValue: range[0] && range[0].getTime(),
-            endValue: range[1] && range[1].getTime(),
-        }).toJSONObject();
+        this.state = this._internalState.receive({ range }).toJSONObject();
     }
 }
 
