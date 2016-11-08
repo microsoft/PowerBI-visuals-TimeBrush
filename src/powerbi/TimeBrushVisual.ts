@@ -26,7 +26,7 @@ declare var _: any;
 import { StatefulVisual } from "pbi-stateful/src/StatefulVisual";
 
 import { TimeBrush as TimeBrushImpl } from "../TimeBrush";
-import { TimeBrushVisualDataItem } from "./models";
+import { TimeBrushDataItem } from "../models";
 import { default as dataConverter, coerceDate } from "./dataConversion";
 import {
     publishChange,
@@ -61,6 +61,7 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
     private timeColumn: DataViewCategoryColumn;
     private timeBrush: TimeBrushImpl;
     private _internalState: TimeBrushState;
+    private _doPBIFilter: (range: [Date, Date]) => void;
 
     /**
      * The current data set
@@ -93,6 +94,7 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
         // HACK: PowerBI Swallows these events unless we prevent propagation upwards
         this.element.on("mousedown", (e: any) => e.stopPropagation());
         this._internalState = TimeBrushState.create<TimeBrushState>();
+        this._doPBIFilter = _.debounce((range: [Date, Date]) => this.updatePBIFilter(range), 500);
     }
 
     /** This is called once when the visual is initialially created */
@@ -146,28 +148,27 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
     protected onSetState(state: TimeBrushState) {
         if (this.timeBrush && state) {
             // Incoming state has been json-serialized/deserialized. Dates are ISO string.
-            state.rangeItems = state.rangeItems || [] as [TimeBrushVisualDataItem, TimeBrushVisualDataItem];
-            state.rangeItems.forEach((ri: TimeBrushVisualDataItem) => {
-                ri.date = new Date(ri.date as any);
-            });
+            state.range = state.range || [] as [Date, Date];
+            state.range = state.range.map((v: any) => new Date(v)) as [Date, Date];
 
             // Figure out what's happening
             const currentRange = this.timeBrush.selectedRange;
             const isCurrentRangeSet = currentRange && currentRange.length === 2;
-            const isStateRangeSet = state.rangeItems && state.rangeItems.length === 2 && state.rangeItems[0] && state.rangeItems[1];
+            const isStateRangeSet = state.range && state.range.length === 2 && state.range[0] && state.range[1];
             const isRangeBeingSet = !isCurrentRangeSet && isStateRangeSet;
             const isRangeChanging = isCurrentRangeSet && isStateRangeSet;
             const isRangeBeingUnset = isCurrentRangeSet && !isStateRangeSet;
 
             // Update the Time Brush
             if (isRangeBeingSet || isRangeChanging) {
-                this.timeBrush.selectedRange = state.rangeItems.map((ri: TimeBrushVisualDataItem) => ri.date) as [Date, Date];
+                this.timeBrush.selectedRange = state.range;
             } else if (isRangeBeingUnset) {
                 this.timeBrush.selectedRange = [] as any;
             }
-            
+
             // Update the internal state
             this._internalState = this._internalState.receive(state);
+            this._doPBIFilter(this._internalState.range);
         }
     }
 
@@ -265,9 +266,19 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
      * Raised when the time range is selected
      * @param range undefined means no range, otherwise should be [startDate, endDate]
      */
-    private onTimeRangeSelected(range: Date[], items: TimeBrushVisualDataItem[]) {
+    private onTimeRangeSelected(range: [Date, Date]) {
+        // Hack from timeline.ts
+        this.host.onSelect(<any>{ data: [] });
+        this.state = this._internalState.receive({ range }).toJSONObject();
+        let label = `Select range ${range[0].toLocaleDateString()} - ${range[1].toLocaleDateString()}`;
+        publishChange(this, label, this.state);
+        this._doPBIFilter(range);
+    }
+
+    private updatePBIFilter(range: Date[]) {
         let filter: any;
-        if (range && range.length === 2) {
+        const items = this.getRangeBoundItems(range);
+        if (items && items.length === 2) {
             const sourceType = this.timeColumn.source.type;
             let builderType = "text";
             if (sourceType.extendedType === powerbi.ValueType.fromDescriptor({ integer: true }).extendedType) {
@@ -300,21 +311,41 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
 
         let objects: powerbi.VisualObjectInstancesToPersist = { };
         if (filter) {
-            $.extend(objects, {
-                merge: [instance],
-            });
+            $.extend(objects, { merge: [instance] });
         } else {
-            $.extend(objects, {
-                remove: [instance],
-            });
+            $.extend(objects, { remove: [instance] });
         }
 
+        console.log("PERSISTING ", items, objects);
         this.host.persistProperties(objects);
-        // Hack from timeline.ts
-        this.host.onSelect(<any>{ data: [] });
-        this.state = this._internalState.receive({ rangeItems: items }).toJSONObject();
-        let label = `Select range ${range[0].toLocaleDateString()} - ${range[1].toLocaleDateString()}`;
-        publishChange(this, label, this.state);
+    }
+
+    private getRangeBoundItems(dateRange: Date[]) {
+        let items: any[] = [];
+        if (dateRange && dateRange.length) {
+            let lowerItem: TimeBrushDataItem;
+            let upperItem: TimeBrushDataItem;
+            this.timeBrush.data.forEach(item => {
+                if (!lowerItem) {
+                    lowerItem = item;
+                }
+                if (!upperItem) {
+                    upperItem = item;
+                }
+
+                if (Math.abs(dateRange[0].getTime() - item.date.getTime()) <
+                    Math.abs(dateRange[0].getTime() - lowerItem.date.getTime())) {
+                    lowerItem = item;
+                }
+
+                if (Math.abs(dateRange[1].getTime() - item.date.getTime()) <
+                    Math.abs(dateRange[1].getTime() - upperItem.date.getTime())) {
+                    upperItem = item;
+                }
+            });
+            items = [lowerItem, upperItem];
+        }
+        return items;
     }
 }
 

@@ -133,5 +133,5 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
     /**
      * The selected time range
      */
-    public rangeItems: [TimeBrushVisualDataItem, TimeBrushVisualDataItem]; // the physical boundary items the range maps to
+    public range: [Date, Date];
 }
