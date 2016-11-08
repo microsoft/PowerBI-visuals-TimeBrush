@@ -58,6 +58,7 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
     private host: IVisualHostServices;
     private timeColumn: DataViewCategoryColumn;
     private timeBrush: TimeBrushImpl;
+    private _internalState: TimeBrushState;
 
     /**
      * The current data set
@@ -89,6 +90,7 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
 
         // HACK: PowerBI Swallows these events unless we prevent propagation upwards
         this.element.on("mousedown", (e: any) => e.stopPropagation());
+        this._internalState = TimeBrushState.create<TimeBrushState>();
     }
 
     /** This is called once when the visual is initialially created */
@@ -102,7 +104,7 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
     /** Update is called for data updates, resizes & formatting changes */
     protected onUpdate(options: VisualUpdateOptions, updateType: UpdateType) {
         let dataView = this.dataView = options.dataViews && options.dataViews[0];
-        const newState = this.state.receiveFromPBI(dataView);
+        const newState = this._internalState.receiveFromPBI(dataView);
 
         if (dataView) {
             const hasDataChanged = !!(updateType & UpdateType.Data);
@@ -115,12 +117,12 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
         }
 
         if (updateType & UpdateType.Settings) {
-            if (newState.barWidth !== this.state.barWidth) {
+            if (newState.barWidth !== this._internalState.barWidth) {
                 this.timeBrush.barWidth = newState.barWidth;
             }
         }
 
-        this.state = newState;
+        this.state = newState.toJSONObject();
     }
     /**
      * Called when the dimensions of the visual have changed
@@ -136,7 +138,7 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
     }
 
     protected generateState() {
-        return TimeBrushState.create<TimeBrushState>();
+        return this._internalState.toJSONObject();
     }
 
     protected onSetState(state: TimeBrushState) {
@@ -161,7 +163,7 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
      */
     public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstance[] {
         let instances = (super.enumerateObjectInstances(options) || []) as VisualObjectInstance[];
-        return instances.concat(this.state.buildEnumerationObjects(options.objectName, this.dataView));
+        return instances.concat(this._internalState.buildEnumerationObjects(options.objectName, this.dataView));
     }
 
     /**
@@ -182,7 +184,7 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
      * Loads the data from power bi
      */
     private loadDataFromPowerBI(dataView: powerbi.DataView, hasDataChanged: boolean, state: TimeBrushState) {
-        if (hasDataChanged || hasColorSettingsChanged(this.state, state)) {
+        if (hasDataChanged || hasColorSettingsChanged(this._internalState, state)) {
             let dataViewCategorical = dataView.categorical;
             let data = dataConverter(dataView, state);
             this._data = data;
@@ -226,10 +228,10 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
                 endDate = coerceDate(filterEndDate);
 
                 // If the selection has changed at all, then set it
-                this.state = this.state.receive({
+                this.state = this._internalState.receive({
                     startValue: startDate && startDate.getTime(),
                     endValue: endDate && endDate.getTime(),
-                });
+                }).toJSONObject();
             } else {
                 // Remove the filter completely from PBI
                 this.host.persistProperties({
@@ -294,7 +296,10 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
         this.host.persistProperties(objects);
         // Hack from timeline.ts
         this.host.onSelect(<any>{ data: [] });
-        this.state = this.state.receive({startValue: range[0] && range[0].getTime(), endValue: range[1] && range[1].getTime()});
+        this.state = this._internalState.receive({
+            startValue: range[0] && range[0].getTime(),
+            endValue: range[1] && range[1].getTime(),
+        }).toJSONObject();
     }
 }
 
