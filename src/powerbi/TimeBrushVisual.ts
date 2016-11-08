@@ -49,6 +49,7 @@ import myCapabilities from "./capabilities";
 import TimeBrushState from "./state";
 
 /* tslint:disable */
+const stringify = require("json-stringify-safe");
 const MY_CSS_MODULE = require("!css!sass!./css/TimeBrushVisual.scss");
 const ldget = require("lodash/get");
 /* tslint:enable */
@@ -151,24 +152,16 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
             state.range = state.range || [] as [Date, Date];
             state.range = state.range.map((v: any) => new Date(v)) as [Date, Date];
 
-            // Figure out what's happening
-            const currentRange = this.timeBrush.selectedRange;
-            const isCurrentRangeSet = currentRange && currentRange.length === 2;
-            const isStateRangeSet = state.range && state.range.length === 2 && state.range[0] && state.range[1];
-            const isRangeBeingSet = !isCurrentRangeSet && isStateRangeSet;
-            const isRangeChanging = isCurrentRangeSet && isStateRangeSet;
-            const isRangeBeingUnset = isCurrentRangeSet && !isStateRangeSet;
-
             // Update the Time Brush
-            if (isRangeBeingSet || isRangeChanging) {
-                this.timeBrush.selectedRange = state.range;
-            } else if (isRangeBeingUnset) {
-                this.timeBrush.selectedRange = [] as any;
-            }
+            this.timeBrush.selectedRange = state.range;
 
             // Update the internal state
             this._internalState = this._internalState.receive(state);
-            this._doPBIFilter(this._internalState.range);
+
+            // Update PBI if this is user-triggered
+            if (!this.isHandlingUpdate) {
+                this._doPBIFilter(this._internalState.range);
+            }
         }
     }
 
@@ -250,14 +243,7 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
                 this.timeBrush.selectedRange = range;
                 // TODO: should the state be set here?
             } else {
-                // Remove the filter completely from PBI
-                this.host.persistProperties({
-                    remove: [{
-                        objectName: "general",
-                        selector: undefined,
-                        properties: { filter: undefined },
-                    }],
-                });
+                this.timeBrush.selectedRange = undefined;
             }
         }
     }
@@ -267,10 +253,13 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
      * @param range undefined means no range, otherwise should be [startDate, endDate]
      */
     private onTimeRangeSelected(range: [Date, Date]) {
-        // Hack from timeline.ts
-        this.host.onSelect(<any>{ data: [] });
         this.state = this._internalState.receive({ range }).toJSONObject();
-        let label = `Select range ${range[0].toLocaleDateString()} - ${range[1].toLocaleDateString()}`;
+        let label: string;
+        if (range && range.length === 2) {
+            label = `Select range ${range[0].toLocaleDateString()} - ${range[1].toLocaleDateString()}`;
+        } else {
+            label = "Clear selection";
+        }
         publishChange(this, label, this.state);
         this._doPBIFilter(range);
     }
@@ -316,8 +305,8 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
             $.extend(objects, { remove: [instance] });
         }
 
-        console.log("PERSISTING ", items, objects);
         this.host.persistProperties(objects);
+        this.host.onSelect(<any>{ data: [] }); // hack 
     }
 
     private getRangeBoundItems(dateRange: Date[]) {
