@@ -86,6 +86,7 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
      */
     constructor(noCss = false) {
         super("TimeBrush", noCss);
+        TimeBrush.DEFAULT_SANDBOX_ENABLED = false;
 
         const className = MY_CSS_MODULE && MY_CSS_MODULE.locals && MY_CSS_MODULE.locals.className;
         if (className) {
