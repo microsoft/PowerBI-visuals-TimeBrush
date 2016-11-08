@@ -165,6 +165,20 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
         }
     }
 
+    public areEqual(s1: TimeBrushState, s2: TimeBrushState): boolean {
+        const otherPropsAreEqual = _.isEqual(
+            _.omit(s1, ["seriesColors"]),
+            _.omit(s2, ["seriesColors"])
+        );
+        const seriesColorsChanged = (s1.seriesColors.length > 1 || s2.seriesColors.length > 1) &&
+            !_.isEqual(s1.seriesColors, s2.seriesColors);
+        return otherPropsAreEqual && !seriesColorsChanged;
+    }
+
+    public getHashCode(state: TimeBrushState) {
+        return super.getHashCode(_.omit(state, ["seriesColors"]));
+    }
+
     /**
      * Enumerates the instances for the objects that appear in the power bi panel
      */
@@ -220,10 +234,12 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
             if (colExpr && colExpr.source) {
                 const filterSource = colExpr.source as data.SQEntityExpr;
                 const source = this.timeColumn && (<data.SQColumnRefExpr>this.timeColumn.source.expr).source as data.SQEntityExpr;
-                dataSourceChanged =
-                    filterSource.entity !== source.entity ||
-                    filterSource.schema !== source.schema ||
-                    filterSource.variable !== source.variable;
+                if (source) {
+                    dataSourceChanged =
+                        filterSource.entity !== source.entity ||
+                        filterSource.schema !== source.schema ||
+                        filterSource.variable !== source.variable;
+                }
             }
 
             // If the user indicates whether or not to clear the selection when the underlying dataset has changed
