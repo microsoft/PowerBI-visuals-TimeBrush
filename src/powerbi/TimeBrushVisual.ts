@@ -23,42 +23,46 @@
  */
 
 declare var _: any;
+import { StatefulVisual } from "pbi-stateful/src/StatefulVisual";
 
 import { TimeBrush as TimeBrushImpl } from "../TimeBrush";
-import { TimeBrushVisualDataItem } from "./models";
+import { TimeBrushDataItem } from "../models";
 import { default as dataConverter, coerceDate } from "./dataConversion";
-
-import { VisualBase, Visual } from "essex.powerbi.base";
-import { updateTypeGetter, UpdateType } from "essex.powerbi.base";
-import IVisual = powerbi.IVisual;
+import {
+    publishChange,
+} from "pbi-stateful/src/stateful";
+import {
+    Visual,
+    IDimensions,
+    receiveDimensions,
+    capabilities,
+    UpdateType,
+} from "essex.powerbi.base";
 import IVisualHostServices = powerbi.IVisualHostServices;
-import VisualCapabilities = powerbi.VisualCapabilities;
 import VisualInitOptions = powerbi.VisualInitOptions;
 import VisualUpdateOptions = powerbi.VisualUpdateOptions;
 import VisualObjectInstance = powerbi.VisualObjectInstance;
 import EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInstancesOptions;
 import DataViewCategoryColumn = powerbi.DataViewCategoryColumn;
 import data = powerbi.data;
-import capabilities from "./capabilities";
+import myCapabilities from "./capabilities";
 import TimeBrushState from "./state";
 
 /* tslint:disable */
-const moment = require("moment");
+const stringify = require("json-stringify-safe");
 const MY_CSS_MODULE = require("!css!sass!./css/TimeBrushVisual.scss");
 const ldget = require("lodash/get");
 /* tslint:enable */
 
 @Visual(require("../build").output.PowerBI)
-export default class TimeBrush extends VisualBase implements IVisual {
-
-    /**
-     * The set of capabilities for the visual
-     */
-    public static capabilities: VisualCapabilities = capabilities;
+@receiveDimensions
+@capabilities(myCapabilities)
+export default class TimeBrush extends StatefulVisual<TimeBrushState> {
     private host: IVisualHostServices;
     private timeColumn: DataViewCategoryColumn;
     private timeBrush: TimeBrushImpl;
-    private updateType = updateTypeGetter(this);
+    private _internalState: TimeBrushState;
+    private _doPBIFilter: (range: [Date, Date]) => void;
 
     /**
      * The current data set
@@ -69,11 +73,6 @@ export default class TimeBrush extends VisualBase implements IVisual {
      * The current dataview that we are looking at
      */
     private dataView: powerbi.DataView;
-
-    /**
-     * The current state of the timebrush
-     */
-    private state: TimeBrushState;
 
     /**
      * Returns a numerical value for a month
@@ -87,41 +86,31 @@ export default class TimeBrush extends VisualBase implements IVisual {
      */
     constructor(noCss = false) {
         super("TimeBrush", noCss);
+        TimeBrush.DEFAULT_SANDBOX_ENABLED = false;
 
         const className = MY_CSS_MODULE && MY_CSS_MODULE.locals && MY_CSS_MODULE.locals.className;
         if (className) {
             this.element.addClass(className);
         }
 
-        VisualBase.DEFAULT_SANDBOX_ENABLED = false;
-        this.state = TimeBrushState.create<TimeBrushState>();
-
         // HACK: PowerBI Swallows these events unless we prevent propagation upwards
         this.element.on("mousedown", (e: any) => e.stopPropagation());
+        this._internalState = TimeBrushState.create<TimeBrushState>();
+        this._doPBIFilter = _.debounce((range: [Date, Date]) => this.updatePBIFilter(range), 500);
     }
 
     /** This is called once when the visual is initialially created */
-    public init(options: VisualInitOptions): void {
-        super.init(options);
+    protected onInit(options: VisualInitOptions): void {
         this.host = options.host;
         const dims = { width: options.viewport.width, height: options.viewport.height };
         this.timeBrush = new TimeBrushImpl(this.element.find(".timebrush"), dims);
-        this.timeBrush.events.on("rangeSelected", (range: Date[], items: any[]) => this.onTimeRangeSelected(range, items));
+        this.timeBrush.events.on("rangeSelected", this.onTimeRangeSelected.bind(this));
     }
 
     /** Update is called for data updates, resizes & formatting changes */
-    public update(options: VisualUpdateOptions) {
-        const updateType = this.updateType();
-        super.update(options);
-
-        // If the dimensions changed
-        if (updateType & UpdateType.Resize) {
-            this.timeBrush.dimensions = { width: options.viewport.width, height: options.viewport.height };
-        }
-
+    protected onUpdate(options: VisualUpdateOptions, updateType: UpdateType) {
         let dataView = this.dataView = options.dataViews && options.dataViews[0];
-
-        const newState = this.state.receiveFromPBI(dataView);
+        const newState = this._internalState.receiveFromPBI(dataView);
 
         if (dataView) {
             const hasDataChanged = !!(updateType & UpdateType.Data);
@@ -134,12 +123,61 @@ export default class TimeBrush extends VisualBase implements IVisual {
         }
 
         if (updateType & UpdateType.Settings) {
-            if (newState.barWidth !== this.state.barWidth) {
+            if (newState.barWidth !== this._internalState.barWidth) {
                 this.timeBrush.barWidth = newState.barWidth;
             }
         }
 
-        this.state = newState;
+        this.state = newState.toJSONObject();
+    }
+    /**
+     * Called when the dimensions of the visual have changed
+     */
+    public setDimensions(value: IDimensions) {
+        if (this.timeBrush) {
+            this.timeBrush.dimensions = value;
+        }
+    }
+
+    protected getCustomCssModules() {
+        return [MY_CSS_MODULE];
+    }
+
+    protected generateState() {
+        return this._internalState.toJSONObject();
+    }
+
+    protected onSetState(state: TimeBrushState) {
+        if (this.timeBrush && state) {
+            // Incoming state has been json-serialized/deserialized. Dates are ISO string.
+            state.range = state.range || [] as [Date, Date];
+            state.range = state.range.map((v: any) => new Date(v)) as [Date, Date];
+
+            // Update the Time Brush
+            this.timeBrush.selectedRange = state.range;
+
+            // Update the internal state
+            this._internalState = this._internalState.receive(state);
+
+            // Update PBI if this is user-triggered
+            if (!this.isHandlingUpdate) {
+                this._doPBIFilter(this._internalState.range);
+            }
+        }
+    }
+
+    public areEqual(s1: TimeBrushState, s2: TimeBrushState): boolean {
+        const otherPropsAreEqual = _.isEqual(
+            _.omit(s1, ["seriesColors"]),
+            _.omit(s2, ["seriesColors"])
+        );
+        const seriesColorsChanged = (s1.seriesColors.length > 1 || s2.seriesColors.length > 1) &&
+            !_.isEqual(s1.seriesColors, s2.seriesColors);
+        return otherPropsAreEqual && !seriesColorsChanged;
+    }
+
+    public getHashCode(state: TimeBrushState) {
+        return super.getHashCode(_.omit(state, ["seriesColors"]));
     }
 
     /**
@@ -147,7 +185,7 @@ export default class TimeBrush extends VisualBase implements IVisual {
      */
     public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstance[] {
         let instances = (super.enumerateObjectInstances(options) || []) as VisualObjectInstance[];
-        return instances.concat(this.state.buildEnumerationObjects(options.objectName, this.dataView));
+        return instances.concat(this._internalState.buildEnumerationObjects(options.objectName, this.dataView));
     }
 
     /**
@@ -168,7 +206,7 @@ export default class TimeBrush extends VisualBase implements IVisual {
      * Loads the data from power bi
      */
     private loadDataFromPowerBI(dataView: powerbi.DataView, hasDataChanged: boolean, state: TimeBrushState) {
-        if (hasDataChanged || hasColorSettingsChanged(this.state, state)) {
+        if (hasDataChanged || hasColorSettingsChanged(this._internalState, state)) {
             let dataViewCategorical = dataView.categorical;
             let data = dataConverter(dataView, state);
             this._data = data;
@@ -197,10 +235,12 @@ export default class TimeBrush extends VisualBase implements IVisual {
             if (colExpr && colExpr.source) {
                 const filterSource = colExpr.source as data.SQEntityExpr;
                 const source = this.timeColumn && (<data.SQColumnRefExpr>this.timeColumn.source.expr).source as data.SQEntityExpr;
-                dataSourceChanged =
-                    filterSource.entity !== source.entity ||
-                    filterSource.schema !== source.schema ||
-                    filterSource.variable !== source.variable;
+                if (source) {
+                    dataSourceChanged =
+                        filterSource.entity !== source.entity ||
+                        filterSource.schema !== source.schema ||
+                        filterSource.variable !== source.variable;
+                }
             }
 
             // If the user indicates whether or not to clear the selection when the underlying dataset has changed
@@ -211,23 +251,16 @@ export default class TimeBrush extends VisualBase implements IVisual {
                 startDate = coerceDate(filterStartDate);
                 endDate = coerceDate(filterEndDate);
 
-                // If the selection has changed at all, then set it
-                let currentSelection = this.timeBrush.selectedRange;
-                if (!currentSelection ||
-                    currentSelection.length !== 2 ||
-                    startDate !== currentSelection[0] ||
-                    endDate !== currentSelection[1]) {
-                    this.timeBrush.selectedRange = [startDate, endDate];
+                let range: [Date, Date] = [] as [Date, Date];
+                if (startDate && endDate) {
+                    range = [startDate, endDate];
                 }
+
+                // If the selection has changed at all, then set it
+                this.timeBrush.selectedRange = range;
+                // TODO: should the state be set here?
             } else {
-                // Remove the filter completely from PBI
-                this.host.persistProperties({
-                    remove: [{
-                        objectName: "general",
-                        selector: undefined,
-                        properties: { filter: undefined },
-                    }],
-                });
+                this.timeBrush.selectedRange = undefined;
             }
         }
     }
@@ -236,9 +269,22 @@ export default class TimeBrush extends VisualBase implements IVisual {
      * Raised when the time range is selected
      * @param range undefined means no range, otherwise should be [startDate, endDate]
      */
-    private onTimeRangeSelected(range: Date[], items: TimeBrushVisualDataItem[]) {
-        let filter: any;
+    private onTimeRangeSelected(range: [Date, Date]) {
+        this.state = this._internalState.receive({ range }).toJSONObject();
+        let label: string;
         if (range && range.length === 2) {
+            label = `Select range ${range[0].toLocaleDateString()} - ${range[1].toLocaleDateString()}`;
+        } else {
+            label = "Clear selection";
+        }
+        publishChange(this, label, this.state);
+        this._doPBIFilter(range);
+    }
+
+    private updatePBIFilter(range: Date[]) {
+        let filter: any;
+        const items = this.getRangeBoundItems(range);
+        if (items && items.length === 2) {
             const sourceType = this.timeColumn.source.type;
             let builderType = "text";
             if (sourceType.extendedType === powerbi.ValueType.fromDescriptor({ integer: true }).extendedType) {
@@ -266,27 +312,46 @@ export default class TimeBrush extends VisualBase implements IVisual {
         let instance =  <powerbi.VisualObjectInstance>{
             objectName: "general",
             selector: undefined,
-            properties: {
-                "filter": filter,
-            },
+            properties: { filter },
         };
 
         let objects: powerbi.VisualObjectInstancesToPersist = { };
         if (filter) {
-            $.extend(objects, {
-                merge: [instance],
-            });
+            $.extend(objects, { merge: [instance] });
         } else {
-            $.extend(objects, {
-                remove: [instance],
-            });
+            $.extend(objects, { remove: [instance] });
         }
 
-
         this.host.persistProperties(objects);
+        this.host.onSelect(<any>{ data: [] }); // hack 
+    }
 
-        // Hack from timeline.ts
-        this.host.onSelect(<any>{ data: [] });
+    private getRangeBoundItems(dateRange: Date[]) {
+        let items: any[] = [];
+        if (dateRange && dateRange.length) {
+            let lowerItem: TimeBrushDataItem;
+            let upperItem: TimeBrushDataItem;
+            this.timeBrush.data.forEach(item => {
+                if (!lowerItem) {
+                    lowerItem = item;
+                }
+                if (!upperItem) {
+                    upperItem = item;
+                }
+
+                if (Math.abs(dateRange[0].getTime() - item.date.getTime()) <
+                    Math.abs(dateRange[0].getTime() - lowerItem.date.getTime())) {
+                    lowerItem = item;
+                }
+
+                if (Math.abs(dateRange[1].getTime() - item.date.getTime()) <
+                    Math.abs(dateRange[1].getTime() - upperItem.date.getTime())) {
+                    upperItem = item;
+                }
+            });
+            items = [lowerItem, upperItem];
+        }
+        return items;
     }
 }
 
