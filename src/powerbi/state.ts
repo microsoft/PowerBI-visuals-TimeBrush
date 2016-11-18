@@ -8,8 +8,11 @@ import {
     boolSetting as bool,
     deserializeObjectWithIdentity,
     serializeObjectWithIdentity,
+    gradientSetting as gradient,
+    enumSetting,
+    GradientSettings,
 } from "essex.powerbi.base";
-import { IColorSettings } from "./models";
+import { IColorSettings, ColorMode } from "./models";
 import { dataSupportsDefaultColor, dataSupportsColorizedInstances, dataSupportsGradients } from "./dataConversion";
 const fullColors = colors.full;
 
@@ -39,6 +42,17 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
     public seriesColors: IColoredObject[];
 
     /**
+     * Represents the color mode to use
+     */
+    @enumSetting(ColorMode, {
+        category: "Data Point",
+        displayName: "Color Mode",
+        defaultValue: ColorMode.Instance,
+        description: "Determines how the individual bars within the time brush are colored",
+    })
+    public colorMode: ColorMode;
+
+    /**
      * Whether or not to clear the selection when the data has changed
      */
     @bool({
@@ -51,62 +65,13 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
     public clearSelectionOnDataChange: boolean;
 
     /**
-     * If the gradient color scheme should be used when coloring the values in the slicer
+     * The set of gradient settings
      */
-    @bool({
+    @gradient<TimeBrushVisualState>({
         category: "Data Point",
-        displayName: "Use Gradient",
-        description: "If the gradient color scheme should be used when coloring the values in the slicer",
-        defaultValue: false,
-        enumerable: (s, dataView) => dataSupportsGradients(dataView),
-    })
-    public useGradient: boolean;
-
-    /**
-     * If the gradient color scheme should be used when coloring the values in the slicer
-     */
-    @color<TimeBrushVisualState>({
-        category: "Data Point",
-        displayName: "Start color",
-        description: "The start color of the gradient",
-        enumerable: (s, dataView) => dataSupportsGradients(dataView) && s.useGradient,
-        defaultValue: "#bac2ff",
-    })
-    public startColor: string;
-
-    /**
-     * If the gradient color scheme should be used when coloring the values in the slicer
-     */
-    @color<TimeBrushVisualState>({
-        category: "Data Point",
-        displayName: "End color",
-        description: "The end color of the gradient",
-        enumerable: (s, dataView) => dataSupportsGradients(dataView) && s.useGradient,
-        defaultValue: "#0229bf",
-    })
-    public endColor: string;
-
-    /**
-     * The value to use as the start color
-     */
-    @num<TimeBrushVisualState>({
-        category: "Data Point",
-        displayName: "Start Value",
-        description: "The value to use as the start color",
         enumerable: (s, dataView) => dataSupportsGradients(dataView) && s.useGradient,
     })
-    public startValue: number;
-
-    /**
-     * The value to use as the end color
-     */
-    @num<TimeBrushVisualState>({
-        category: "Data Point",
-        displayName: "End Value",
-        description: "The value to use as the end color",
-        enumerable: (s, dataView) => dataSupportsGradients(dataView) && s.useGradient,
-    })
-    public endValue: number;
+    public gradient: GradientSettings;
 
     /**
      * If the order of the bars in the display should be reversed
@@ -136,6 +101,13 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
      * The selected time range
      */
     public range: [Date, Date];
+
+    /**
+     * A utility property to indicate if the Gradient color mode is selected
+     */
+    public get useGradient() {
+        return this.colorMode === ColorMode.Gradient;
+    }
 
     /**
      * Receives the new properties

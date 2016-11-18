@@ -144,14 +144,24 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
         }
     }
 
+    /**
+     * Gets a list of the custom css modules
+     */
     protected getCustomCssModules() {
         return [MY_CSS_MODULE];
     }
 
+    /**
+     * Generates the current state of the visual
+     */
     protected generateState() {
         return this._internalState.toJSONObject();
     }
 
+    /**
+     * Called when a new state has been set on the visual
+     * @param state The state being applied
+     */
     protected onSetState(state: TimeBrushState) {
         if (this.timeBrush && state) {
             // Incoming state has been json-serialized/deserialized. Dates are ISO string.
@@ -367,12 +377,12 @@ function hasColorSettingsChanged(state: TimeBrushState, newState: TimeBrushState
     "use strict";
     if (state && newState) {
         let changed = state.useGradient !== newState.useGradient ||
-            state.endColor !== newState.endColor ||
+            state.gradient.endColor !== newState.gradient.endColor ||
             state.defaultBarColor !== newState.defaultBarColor ||
-            state.startColor !== newState.startColor ||
+            state.gradient.startColor !== newState.gradient.startColor ||
             state.reverseBars !== newState.reverseBars ||
-            state.endValue !== newState.endValue ||
-            state.startValue !== newState.startValue;
+            state.gradient.endValue !== newState.gradient.endValue ||
+            state.gradient.startValue !== newState.gradient.startValue;
         if (!changed) {
             const oldSeriesColors = state.seriesColors || [];
             const newSeriesColors = newState.seriesColors || [];

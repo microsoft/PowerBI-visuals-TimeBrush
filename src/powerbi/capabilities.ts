@@ -21,11 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 import VisualDataRoleKind = powerbi.VisualDataRoleKind;
 import VisualCapabilities = powerbi.VisualCapabilities;
 import TimeBrushState from "./state";
-export default {
+export const capabilities: VisualCapabilities = {
     dataRoles: [
         {
             name: "Times",
@@ -84,4 +83,6 @@ export default {
             },
         },
     }, TimeBrushState.buildCapabilitiesObjects()),
-} as VisualCapabilities;
+};
+
+export default capabilities;

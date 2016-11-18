@@ -197,7 +197,8 @@ export function dataSupportsColorizedInstances(dv: powerbi.DataView) {
  */
 export function getGradientFromSettings(settings: IColorSettings) {
     "use strict";
-    const { startColor, endColor, useGradient, startValue, endValue } = (settings || {}) as IColorSettings;
+    const { useGradient, gradient } = (settings || {}) as IColorSettings;
+    const { startColor, endColor, startValue, endValue } = gradient;
     if (useGradient && startColor && endColor) {
         return { startColor, endColor, startValue, endValue };
     }
