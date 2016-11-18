@@ -86,7 +86,9 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
      */
     constructor(noCss = false) {
         super("TimeBrush", noCss);
-        TimeBrush.DEFAULT_SANDBOX_ENABLED = false;
+
+        // Tell visual base to not load sandboxed
+        this.loadSandboxed = false;
 
         const className = MY_CSS_MODULE && MY_CSS_MODULE.locals && MY_CSS_MODULE.locals.className;
         if (className) {
@@ -110,26 +112,29 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
     /** Update is called for data updates, resizes & formatting changes */
     protected onUpdate(options: VisualUpdateOptions, updateType: UpdateType) {
         let dataView = this.dataView = options.dataViews && options.dataViews[0];
-        const newState = this._internalState.receiveFromPBI(dataView);
+        if (updateType !== UpdateType.Resize) {
+            const newState = this._internalState.receiveFromPBI(dataView);
 
-        if (dataView) {
-            const hasDataChanged = !!(updateType & UpdateType.Data);
-            this.loadDataFromPowerBI(dataView, hasDataChanged, newState);
-            this.loadSelectedRangeFromPowerBI(dataView, hasDataChanged, newState);
+            if (dataView) {
+                const hasDataChanged = !!(updateType & UpdateType.Data);
+                this.loadDataFromPowerBI(dataView, hasDataChanged, newState);
+                this.loadSelectedRangeFromPowerBI(dataView, hasDataChanged, newState);
 
-            // Safari for some reason will not repaint after an dynamically added class, so we are adding this here
-            // to ensure that safari repaints after an update
-            this.element.addClass("SAFARI_HACK").removeClass("SAFARI_HACK");
-        }
-
-        if (updateType & UpdateType.Settings) {
-            if (newState.barWidth !== this._internalState.barWidth) {
-                this.timeBrush.barWidth = newState.barWidth;
+                // Safari for some reason will not repaint after an dynamically added class, so we are adding this here
+                // to ensure that safari repaints after an update
+                this.element.addClass("SAFARI_HACK").removeClass("SAFARI_HACK");
             }
-        }
 
-        this.state = newState.toJSONObject();
+            if (updateType & UpdateType.Settings) {
+                if (newState.barWidth !== this._internalState.barWidth) {
+                    this.timeBrush.barWidth = newState.barWidth;
+                }
+            }
+
+            this.state = newState.toJSONObject();
+        }
     }
+
     /**
      * Called when the dimensions of the visual have changed
      */
@@ -323,7 +328,7 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
         }
 
         this.host.persistProperties(objects);
-        this.host.onSelect(<any>{ data: [] }); // hack 
+        this.host.onSelect(<any>{ data: [] }); // hack
     }
 
     private getRangeBoundItems(dateRange: Date[]) {

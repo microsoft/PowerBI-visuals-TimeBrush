@@ -6,8 +6,10 @@ import {
     colors,
     numberSetting as num,
     boolSetting as bool,
+    deserializeObjectWithIdentity,
+    serializeObjectWithIdentity,
 } from "essex.powerbi.base";
-import { IColorSettings, TimeBrushVisualDataItem } from "./models";
+import { IColorSettings } from "./models";
 import { dataSupportsDefaultColor, dataSupportsColorizedInstances, dataSupportsGradients } from "./dataConversion";
 const fullColors = colors.full;
 
@@ -28,7 +30,7 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
     /**
      * The colors to use for each of the series
      */
-    @coloredInstances({
+    @coloredInstances<TimeBrushVisualState>({
         category: "Data Point",
         name: "fill",
         defaultValue: (idx) => fullColors[idx] || "#ccc",
@@ -63,7 +65,7 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
     /**
      * If the gradient color scheme should be used when coloring the values in the slicer
      */
-    @color({
+    @color<TimeBrushVisualState>({
         category: "Data Point",
         displayName: "Start color",
         description: "The start color of the gradient",
@@ -75,7 +77,7 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
     /**
      * If the gradient color scheme should be used when coloring the values in the slicer
      */
-    @color({
+    @color<TimeBrushVisualState>({
         category: "Data Point",
         displayName: "End color",
         description: "The end color of the gradient",
@@ -87,7 +89,7 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
     /**
      * The value to use as the start color
      */
-    @num({
+    @num<TimeBrushVisualState>({
         category: "Data Point",
         displayName: "Start Value",
         description: "The value to use as the start color",
@@ -98,7 +100,7 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
     /**
      * The value to use as the end color
      */
-    @num({
+    @num<TimeBrushVisualState>({
         category: "Data Point",
         displayName: "End Value",
         description: "The value to use as the end color",
@@ -134,4 +136,27 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
      * The selected time range
      */
     public range: [Date, Date];
+
+    /**
+     * Receives the new properties
+     * @param newProps The properties to merge into state
+     */
+    public receive(newProps?: any) {
+        if (newProps && newProps.seriesColors) {
+            newProps.seriesColors = newProps.seriesColors.map(deserializeObjectWithIdentity);
+        }
+        const base = super.receive(newProps);
+        return base;
+    }
+
+    /**
+     * Creates a JSON object version of this state, suitable for storage
+     */
+    public toJSONObject() {
+        const jsonObj = super.toJSONObject() as TimeBrushVisualState;
+        if (this.seriesColors) {
+            jsonObj.seriesColors = <any>this.seriesColors.map(serializeObjectWithIdentity);
+        }
+        return jsonObj;
+    }
 }
