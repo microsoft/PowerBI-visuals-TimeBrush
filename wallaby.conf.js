@@ -44,6 +44,8 @@ module.exports = function (wallaby) {
       {pattern: 'src/**/*.spec.ts', load: false}
     ],
 
+    testFramework: 'mocha',
+
     postprocessor: wallabyPostprocessor,
 
     setup: function () {

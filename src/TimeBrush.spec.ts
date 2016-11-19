@@ -91,7 +91,7 @@ describe("TimeBrush", () => {
     });
 
     describe("data", () => {
-        it("should defult the data property to empty when data is set to an undefined", () => {
+        it("should default the data property to empty when data is set to an undefined", () => {
             const { instance } = createInstance();
             instance.data = undefined;
             expect(instance.data).to.be.deep.equal([]);

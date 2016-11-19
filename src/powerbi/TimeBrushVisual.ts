@@ -50,7 +50,8 @@ import TimeBrushState from "./state";
 
 /* tslint:disable */
 const stringify = require("json-stringify-safe");
-const MY_CSS_MODULE = require("!css!sass!./css/TimeBrushVisual.scss");
+// const MY_CSS_MODULE = require("!css!sass!./css/TimeBrushVisual.scss");
+const MY_CSS_MODULE = <any>null;
 const ldget = require("lodash/get");
 /* tslint:enable */
 
@@ -84,11 +85,12 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
     /**
      * Constructor for the timebrush visual
      */
-    constructor(noCss = false) {
+    constructor(noCss = false, timeBrushOverride?: TimeBrushImpl) {
         super("TimeBrush", noCss);
 
         // Tell visual base to not load sandboxed
         this.loadSandboxed = false;
+        this.timeBrush = timeBrushOverride;
 
         const className = MY_CSS_MODULE && MY_CSS_MODULE.locals && MY_CSS_MODULE.locals.className;
         if (className) {
@@ -105,7 +107,9 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
     protected onInit(options: VisualInitOptions): void {
         this.host = options.host;
         const dims = { width: options.viewport.width, height: options.viewport.height };
-        this.timeBrush = new TimeBrushImpl(this.element.find(".timebrush"), dims);
+
+        // Allow for overriding of the timebrush
+        this.timeBrush = this.timeBrush || new TimeBrushImpl(this.element.find(".timebrush"), dims);
         this.timeBrush.events.on("rangeSelected", this.onTimeRangeSelected.bind(this));
     }
 

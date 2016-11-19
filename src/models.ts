@@ -42,6 +42,9 @@ export interface TimeBrushDataItem {
     valueSegments: TimeBrushValueSegment[];
 }
 
+/**
+ * Represents a single segment in a time brush item's bar
+ */
 export interface TimeBrushValueSegment {
 
     /**
