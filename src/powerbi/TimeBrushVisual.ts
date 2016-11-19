@@ -50,8 +50,7 @@ import TimeBrushState from "./state";
 
 /* tslint:disable */
 const stringify = require("json-stringify-safe");
-// const MY_CSS_MODULE = require("!css!sass!./css/TimeBrushVisual.scss");
-const MY_CSS_MODULE = <any>null;
+const MY_CSS_MODULE = require("!css!sass!./css/TimeBrushVisual.scss");
 const ldget = require("lodash/get");
 /* tslint:enable */
 
@@ -281,6 +280,8 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
             } else {
                 this.timeBrush.selectedRange = undefined;
             }
+
+            state.range = this.timeBrush.selectedRange;
         }
     }
 

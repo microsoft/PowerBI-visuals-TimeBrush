@@ -25,6 +25,7 @@
 import * as $ from "jquery";
 import simpleData from "./test/simpleData";
 import dataWithBucketsAndSettings from "./test/dataWithBucketsAndSettings";
+import dataWithSelection from "./test/dataWithSelections";
 import { Utils as SpecUtils } from "essex.powerbi.base/dist/spec/visualHelpers";
 import { expect } from "chai";
 import { TimeBrush } from "../TimeBrush";
@@ -66,6 +67,10 @@ describe("TimeBrushVisual", () => {
 
     const getDataWithBucketsAndSettingsUpdate = () => {
         return dataWithBucketsAndSettings();
+    };
+
+    const getDataWithSelection = () => {
+        return dataWithSelection();
     };
 
     it("should load", () => {
@@ -247,6 +252,15 @@ describe("TimeBrushVisual", () => {
             });
         });
 
+        it("should load selection from PBI", () => {
+            const { instance, timeBrush } = createVisual();
+            const { options, selectedRange } = getDataWithSelection();
+
+            instance.update(options);
+
+            expect(timeBrush.selectedRange).to.be.deep.equal(selectedRange);
+        });
+
         it("should clear the selection if the underlying datasource changes", () => {
             const { instance, timeBrush } = createVisual();
             const simpleDataUpdate = getSimpleDataUpdate();
@@ -265,21 +279,18 @@ describe("TimeBrushVisual", () => {
             expect(timeBrush.selectedRange).to.be.empty;
         });
 
-        xit("should NOT clear the selection if the underlying datasource hasn't changed", () => {
+        it("should NOT clear the selection if the underlying datasource hasn't changed", () => {
             const { instance, timeBrush } = createVisual();
-            const simpleDataUpdate = getSimpleDataUpdate();
+            const simpleDataUpdate = getDataWithSelection();
 
             // Perform the first update
             instance.update(simpleDataUpdate.options);
 
-            // Here is the initial range
-            instance.state.range = timeBrush.selectedRange = [simpleDataUpdate.expected[0].date, simpleDataUpdate.expected[2].date];
-
-            // Change the dataset
+            // Perform the second update
             instance.update(simpleDataUpdate.options);
 
             // Make sure the timebrush was cleared
-            expect(timeBrush.selectedRange).to.be.empty;
+            expect(timeBrush.selectedRange).to.not.be.empty;
         });
     });
 });
