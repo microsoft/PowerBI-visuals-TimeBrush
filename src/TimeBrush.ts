@@ -312,12 +312,12 @@ export class TimeBrush {
         const invertScale = 1 / scale;
         const renderedWidth = svgWidth * invertScale;
         const renderedHeight = svgHeight * invertScale;
-        const translateX = (renderedWidth - svgWidth) / 2;
-        const translateY = (renderedHeight - svgHeight) / 2;
+        const translateX = (svgWidth - renderedWidth) / 2;
+        const translateY = (svgHeight - renderedHeight) / 2;
         this.svg
             .attr("width", renderedWidth)
             .attr("height", renderedHeight)
-            .attr("style", `transform:translate(-${translateX}px, -${translateY}px) scale(${scale}, ${scale})`);
+            .attr("style", `transform:translate(${translateX}px, ${translateY}px) scale(${scale}, ${scale})`);
 
         this.clip
             .attr("width", width)
@@ -328,31 +328,37 @@ export class TimeBrush {
             .call(d3.svg.axis().scale(this.x).orient("bottom").ticks(this.dimensions.width / TICK_WIDTH));
 
         // Removes all overlapping/offscreen thangies
-        let svgInfo = (this.svg.node() as Element).getBoundingClientRect();
-        let dateTicks = this.xAxis
-            .selectAll(".tick");
-        for (let j = 0; j < dateTicks[0].length; j++) {
-            let c = dateTicks[0][j] as Element,
-            n = dateTicks[0][j + 1] as Element;
-            let cRect = c && c.getBoundingClientRect();
-            let nRect = n && n.getBoundingClientRect();
-            if (cRect && (cRect.right > svgInfo.right || cRect.left < svgInfo.left)) {
-                d3.select(c).remove();
-                continue;
-            }
-            if (!cRect || !nRect) {
-                continue;
-            }
-            while (cRect.right > nRect.left) {
-                d3.select(n).remove();
-                j++;
-                n = dateTicks[0][j + 1] as Element;
-                nRect = n && n.getBoundingClientRect();
-                if (!n) {
-                    break;
-                }
-            }
-        }
+        this.xAxis
+            .selectAll(".tick")
+            .call((dateTicks) => {
+                setTimeout(() => {
+                    let svgInfo = (this.svg.node() as Element).getBoundingClientRect();
+                    for (let j = 0; j < dateTicks[0].length; j++) {
+                        let c = dateTicks[0][j] as Element,
+                        n = dateTicks[0][j + 1] as Element;
+                        let cRect = c && c.getBoundingClientRect();
+                        let nRect = n && n.getBoundingClientRect();
+                        if (cRect &&
+                            (Math.floor(cRect.right) > Math.ceil(svgInfo.right) ||
+                            Math.ceil(cRect.left) < Math.floor(svgInfo.left))) {
+                            d3.select(c).remove();
+                            continue;
+                        }
+                        if (!cRect || !nRect) {
+                            continue;
+                        }
+                        while (Math.floor(cRect.right) > Math.ceil(nRect.left)) {
+                            d3.select(n).remove();
+                            j++;
+                            n = dateTicks[0][j + 1] as Element;
+                            nRect = n && n.getBoundingClientRect();
+                            if (!n) {
+                                break;
+                            }
+                        }
+                    }
+                }, 50);
+            });
 
         this.context
             .attr("transform", `scale(${invertScale}, ${invertScale}) translate(${margin.left},${margin.top})`);
