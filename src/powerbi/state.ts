@@ -68,10 +68,11 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
     /**
      * Represents the color mode to use
      */
-    @enumSetting(ColorMode, {
+    @enumSetting<TimeBrushVisualState>(ColorMode, {
         category: "Data Point",
         displayName: "Color Mode",
         defaultValue: ColorMode.Instance,
+        enumerable: (s, dv) => dataSupportsColorizedInstances(dv),
         description: "Determines how the individual bars within the time brush are colored",
     })
     public colorMode: ColorMode;

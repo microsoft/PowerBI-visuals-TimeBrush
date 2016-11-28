@@ -156,10 +156,12 @@ export function dataSupportsValueSegments(dv: powerbi.DataView) {
 export function dataSupportsDefaultColor(dv: powerbi.DataView) {
     "use strict";
 
-    // Default color only works on a single value instance
-    if (dataSupportsValueSegments(dv)) {
-        return get(dv, v => v.categorical.values.length, 0) === 1;
-    }
+    // TODO: Disabled for now, cause it doesn't really work well with multiple
+    // bars without identities
+    // // Default color only works on a single value instance
+    // if (dataSupportsValueSegments(dv)) {
+    //     return get(dv, v => v.categorical.values.length, 0) === 1;
+    // }
 
     return false;
 }
