@@ -261,6 +261,37 @@ describe("TimeBrushVisual", () => {
             expect(timeBrush.selectedRange).to.be.deep.equal(selectedRange);
         });
 
+        // Now that I think of it, why??
+        it("should bound the selection if it is out of the range of the dates in PBI", () => {
+            const { instance, timeBrush } = createVisual();
+            const { options } = getDataWithSelection();
+
+            instance.update(options);
+
+            instance.state = <any>{
+                range: [new Date(1000, 10, 10), new Date(12000, 10, 10)],
+            };
+
+            expect(timeBrush.selectedRange).to.be.deep.equal([timeBrush.data[0].date, timeBrush.data[timeBrush.data.length - 1].date]);
+        });
+
+        // Now that I think of it, why??
+        it("should offset the selection slightly if the selected range is a single date", () => {
+            const { instance, timeBrush } = createVisual();
+            const { options } = getDataWithSelection();
+
+            instance.update(options);
+
+            const firstItem = timeBrush.data[0];
+            const date = new Date(firstItem.date.getTime());
+
+            instance.state = <any>{
+                range: [date, date],
+            };
+
+            expect(timeBrush.selectedRange).to.be.deep.equal([new Date(date.getTime() - 1), new Date(date.getTime() + 1)]);
+        });
+
         it("should clear the selection if the underlying datasource changes", () => {
             const { instance, timeBrush } = createVisual();
             const simpleDataUpdate = getSimpleDataUpdate();

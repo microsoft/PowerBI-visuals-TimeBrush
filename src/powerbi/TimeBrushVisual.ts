@@ -26,7 +26,7 @@ declare var _: any;
 import { StatefulVisual } from "pbi-stateful/src/StatefulVisual";
 
 import { TimeBrush as TimeBrushImpl } from "../TimeBrush";
-import { TimeBrushDataItem } from "../models";
+import { TimeBrushVisualDataItem } from "./models";
 import { default as dataConverter, coerceDate } from "./dataConversion";
 import {
     publishChange,
@@ -168,8 +168,17 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
     protected onSetState(state: TimeBrushState) {
         if (this.timeBrush && state) {
             // Incoming state has been json-serialized/deserialized. Dates are ISO string.
-            state.range = state.range || [] as [Date, Date];
-            state.range = state.range.map((v: any) => new Date(v)) as [Date, Date];
+            let newRange = (<any>state.range || []).map((v: string) => new Date(v)) as [Date, Date];
+
+            // Bound the range to actual available dates
+            newRange = <[Date, Date]>this.getRangeBoundItems(newRange).map(n => n.date);
+
+            // If the selected range is just a single item, then offset the final dates a little bit to create a brush
+            if (newRange.length === 2 && newRange[0].getTime() === newRange[1].getTime()) {
+                newRange = [new Date(newRange[0].getTime() - 1), new Date(newRange[1].getTime() + 1)];
+            }
+
+            state.range = newRange;
 
             // Update the Time Brush
             this.timeBrush.selectedRange = state.range;
@@ -301,6 +310,9 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
         this._doPBIFilter(range);
     }
 
+    /**
+     * Updates the PBI filter to match the given date range
+     */
     private updatePBIFilter(range: Date[]) {
         let filter: any;
         const items = this.getRangeBoundItems(range);
@@ -346,12 +358,15 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
         this.host.onSelect(<any>{ data: [] }); // hack
     }
 
+    /**
+     * Gets the items that are nearest to the given date range
+     */
     private getRangeBoundItems(dateRange: Date[]) {
-        let items: any[] = [];
+        let items: TimeBrushVisualDataItem[] = [];
         if (dateRange && dateRange.length) {
-            let lowerItem: TimeBrushDataItem;
-            let upperItem: TimeBrushDataItem;
-            this.timeBrush.data.forEach(item => {
+            let lowerItem: TimeBrushVisualDataItem;
+            let upperItem: TimeBrushVisualDataItem;
+            this.timeBrush.data.forEach((item: TimeBrushVisualDataItem) => {
                 if (!lowerItem) {
                     lowerItem = item;
                 }

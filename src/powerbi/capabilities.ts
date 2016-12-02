@@ -29,7 +29,7 @@ export const capabilities: VisualCapabilities = {
         {
             name: "Times",
             kind: VisualDataRoleKind.Grouping,
-            displayName: "Time",
+            displayName: "Date",
         }, {
             name: "Values",
             kind: VisualDataRoleKind.Measure,
@@ -38,7 +38,7 @@ export const capabilities: VisualCapabilities = {
         }, {
             name: "Series",
             kind: VisualDataRoleKind.Grouping,
-            displayName: "Aggregated By",
+            displayName: "Segmented By",
         },
     ],
     dataViewMappings: [{
