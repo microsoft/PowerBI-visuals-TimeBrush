@@ -47,6 +47,7 @@ export const capabilities: VisualCapabilities = {
             { "Times": { max: 1 }, "Series": { max: 0 }, "Values": { max: 1, min: 0 }},
             { "Times": { max: 1 }, "Series": { min: 1, max: 1 }, "Values": { max: 1, min: 1 }},
             { "Times": { max: 1 }, "Series": { max: 0 }, "Values": { min: 0 }},
+            { "Times": { max: 1 }, "Series": { min: 1, max: 1 }, "Values": { max: 0 }},
         ],
         categorical: {
             dataVolume: 4,
