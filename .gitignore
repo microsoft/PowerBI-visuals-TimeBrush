@@ -21,3 +21,6 @@
 !/base/powerbi/powerbi.d.ts
 !/base/powerbi/references.d.ts
 build.out
+
+# Rando
+.DS_Store
