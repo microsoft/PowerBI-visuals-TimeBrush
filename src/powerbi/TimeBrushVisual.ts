@@ -97,7 +97,7 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
         }
 
         // HACK: PowerBI Swallows these events unless we prevent propagation upwards
-        this.element.on("mousedown", (e: any) => e.stopPropagation());
+        this.element.on("mousedown click pointerdown touchstart touchdown", (e: any) => e.stopPropagation());
         this._internalState = TimeBrushState.create<TimeBrushState>();
         this._doPBIFilter = _.debounce((range: [Date, Date]) => this.updatePBIFilter(range), 500);
     }
