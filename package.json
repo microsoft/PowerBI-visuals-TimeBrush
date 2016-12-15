@@ -78,7 +78,7 @@
     "lolex": "^1.4.0",
     "mocha": "2.3.4",
     "mocha-jsdom": "1.0.0",
-    "node-sass": "^3.10.1",
+    "node-sass": "^4.0.0",
     "npm-run-all": "^1.7.0",
     "phantomjs-prebuilt": "^2.1.7",
     "raw-loader": "0.5.1",
