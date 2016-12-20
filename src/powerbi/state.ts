@@ -36,7 +36,8 @@ import {
     enumSetting,
     GradientSettings,
     settings,
-} from "essex.powerbi.base";
+} from "@essex/pbi-base";
+
 import { IColorSettings, ColorMode } from "./models";
 import { YAxisSettings } from "./settings";
 import { dataSupportsDefaultColor, dataSupportsColorizedInstances, dataSupportsGradients } from "./dataConversion";

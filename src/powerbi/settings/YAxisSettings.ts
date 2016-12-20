@@ -1,4 +1,4 @@
-import { boolSetting as bool, enumSetting } from "essex.powerbi.base";
+import { boolSetting as bool, enumSetting } from "@essex/pbi-base";
 import { AxisPosition } from "../../models";
 
 /**
