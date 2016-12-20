@@ -23,21 +23,21 @@
  */
 
 declare var _: any;
-import { StatefulVisual } from "pbi-stateful/src/StatefulVisual";
+import { StatefulVisual } from "@essex/pbi-stateful/lib/StatefulVisual";
 
 import { TimeBrush as TimeBrushImpl } from "../TimeBrush";
 import { TimeBrushVisualDataItem } from "./models";
 import { default as dataConverter, coerceDate } from "./dataConversion";
 import {
     publishChange,
-} from "pbi-stateful/src/stateful";
+} from "@essex/pbi-stateful/lib/stateful";
 import {
     Visual,
     IDimensions,
     receiveDimensions,
     capabilities,
     UpdateType,
-} from "essex.powerbi.base";
+} from "@essex/pbi-base";
 import IVisualHostServices = powerbi.IVisualHostServices;
 import VisualInitOptions = powerbi.VisualInitOptions;
 import VisualUpdateOptions = powerbi.VisualUpdateOptions;
