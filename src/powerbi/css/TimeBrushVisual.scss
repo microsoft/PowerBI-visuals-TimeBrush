@@ -23,8 +23,8 @@
  */
 
 @import "../../css/Base";
-@import "../../../node_modules/essex.powerbi.base/css/main";
-@import "../../../node_modules/essex.powerbi.base/css/variables";
+@import "../../../node_modules/@essex/pbi-base/css/main";
+@import "../../../node_modules/@essex/pbi-base/css/variables";
 
 :local(.className) {
   svg {

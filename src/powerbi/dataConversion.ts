@@ -25,7 +25,7 @@
 import DataView = powerbi.DataView;
 import SelectionId = powerbi.visuals.SelectionId;
 import { TimeBrushVisualDataItem, IColorSettings } from "./models";
-import { calculateSegments, get } from "essex.powerbi.base";
+import { calculateSegments, get } from "@essex/pbi-base";
 import * as moment from "moment";
 const ldget = require("lodash/get"); // tslint:disable-line
 

@@ -24,7 +24,7 @@
 
 import { TimeBrushDataItem } from "../models";
 import SelectionId = powerbi.visuals.SelectionId;
-import { IColoredObject } from "essex.powerbi.base";
+import { IColoredObject } from "@essex/pbi-base";
 
 /**
  * The data item used by the TimeBrushVisual

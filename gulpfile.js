@@ -24,4 +24,4 @@
 
 const gulp = require('gulp');
 require("ts-node/register");
-require("essex.powerbi.base/dist/build_scripts").default(gulp, __dirname);
+require("@essex/pbi-base/dist/build_scripts").default(gulp, __dirname);

@@ -35,7 +35,7 @@ import {
     gradientSetting as gradient,
     enumSetting,
     GradientSettings,
-} from "essex.powerbi.base";
+} from "@essex/pbi-base";
 import { IColorSettings, ColorMode } from "./models";
 import { dataSupportsDefaultColor, dataSupportsColorizedInstances, dataSupportsGradients } from "./dataConversion";
 const fullColors = colors.full;
