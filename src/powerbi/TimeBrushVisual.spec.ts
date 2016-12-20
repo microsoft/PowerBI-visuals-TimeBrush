@@ -172,6 +172,27 @@ describe("TimeBrushVisual", () => {
                     const result = timeBrush.data.map(n => n.valueSegments.map(m => m.color));
                     expect(result).to.be.deep.equal(expected.map(n => n.valueSegments.map(m => m.color)));
                 });
+
+                it("should load the gradient colors correctly", () => {
+                    const { instance, timeBrush, settings, expected } = createInstanceAndPerformComplexUpdate();
+                    const result = timeBrush.data.map(n => n.valueSegments.map(m => m.color));
+                    expect(result).to.be.deep.equal(expected.map(n => n.valueSegments.map(m => m.color)));
+                });
+
+                it("should load the show y axis setting properly", () => {
+                    const { instance, timeBrush, settings, expected } = createInstanceAndPerformComplexUpdate();
+                    expect(timeBrush.showYAxis).to.be.equal(settings["y-Axis"].showYAxis);
+                });
+
+                it("should load the show y axis reference lines properly", () => {
+                    const { instance, timeBrush, settings, expected } = createInstanceAndPerformComplexUpdate();
+                    expect(timeBrush.showYAxisReferenceLines).to.be.equal(settings["y-Axis"].showReferenceLines);
+                });
+
+                it("should load the show y axis position properly", () => {
+                    const { instance, timeBrush, settings, expected } = createInstanceAndPerformComplexUpdate();
+                    expect(timeBrush.yAxisPosition).to.be.equal(settings["y-Axis"].yAxisPosition);
+                });
             });
 
             describe("User switches the dataset from a simple one to a complex one", () => {

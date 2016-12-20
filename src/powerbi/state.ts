@@ -35,8 +35,10 @@ import {
     gradientSetting as gradient,
     enumSetting,
     GradientSettings,
+    settings,
 } from "essex.powerbi.base";
 import { IColorSettings, ColorMode } from "./models";
+import { YAxisSettings } from "./settings";
 import { dataSupportsDefaultColor, dataSupportsColorizedInstances, dataSupportsGradients } from "./dataConversion";
 const fullColors = colors.full;
 
@@ -121,6 +123,14 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
         max: 100,
     })
     public barWidth: number;
+
+    /**
+     * The settings for the Y axis
+     */
+    @settings(YAxisSettings, {
+        category: "Y-Axis",
+    })
+    public yAxisSettings: YAxisSettings;
 
     /**
      * The selected time range
