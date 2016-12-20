@@ -12,8 +12,10 @@
     "karma:tdd": "karma start --tdd",
     "karma:once": "karma start",
     "docs": "typedoc --out docs --ignoreCompilerErrors ./ --externalPattern **/node_modules/**/*.* --exclude **/src/**/*.spec.ts",
-    "preversion": "NODE_ENV=production npm test",
-    "test": "npm-run-all clean tsc lint karma:once docs pbibundle"
+    "verify": "npm-run-all clean tsc lint karma:once docs",
+    "test": "npm-run-all verify pbibundle",
+    "preversion": "npm run verify",
+    "version": "npm run pbibundle"
   },
   "author": "",
   "license": "MIT",
