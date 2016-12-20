@@ -12,8 +12,8 @@
 *~
 
 # Build Artifacts
-/build/
-/dist/
+build/
+dist/
 *.js
 !/*.js
 *.d.ts
