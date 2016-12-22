@@ -35,4 +35,33 @@ export interface TimeBrushDataItem {
      * The value on the given date
      */
     value: number;
+
+    /**
+     * The segments which make up the value
+     */
+    valueSegments: TimeBrushValueSegment[];
+}
+
+/**
+ * Represents a single segment in a time brush item's bar
+ */
+export interface TimeBrushValueSegment {
+
+    /**
+     * The percentage of the width that this segment should take up
+     */
+    value: number;
+
+    /**
+     * The color of this segment
+     */
+    color: string;
+}
+
+/**
+ * Defines a position of an axis
+ */
+export enum AxisPosition {
+    Left = 1,
+    Right = 2,
 }

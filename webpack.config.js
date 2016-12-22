@@ -46,7 +46,8 @@ const config = module.exports = {
         jquery: "jQuery",
         d3: "d3",
         underscore: "_",
-        "lodash": "_"
+        "lodash": "_",
+        "powerbi-visuals/lib/powerbi-visuals": "powerbi",
     },
     plugins: [
         new webpack.optimize.OccurenceOrderPlugin(),
@@ -74,5 +75,5 @@ if (process.env.NODE_ENV !== "production") {
         }
     });
     config.plugins.push(uglify);
-    // config.plugins.push(banner);
+    config.plugins.push(banner);
 }

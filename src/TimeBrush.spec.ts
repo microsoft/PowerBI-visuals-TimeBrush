@@ -24,13 +24,12 @@
 
 import { expect } from "chai";
 import { TimeBrush } from "./TimeBrush";
-import { TimeBrushDataItem } from "./models";
+import { TimeBrushDataItem, AxisPosition } from "./models";
+import * as d3 from "d3";
+import * as $ from "jquery";
 describe("TimeBrush", () => {
     let parentEle: JQuery;
     beforeEach(() => {
-        global["d3"] = require("d3");
-        global["_"] = require("underscore");
-        global["$"] = require("jquery");
         parentEle = $("<div></div>");
     });
 
@@ -44,18 +43,34 @@ describe("TimeBrush", () => {
     const SIMPLE_FAKE_DATA = [{
         date: new Date(2015, 1, 1),
         value: 20,
+        valueSegments: [{
+            value: 100,
+            color: "red",
+        }],
     }, {
         date: new Date(2016, 1, 1),
         value: 60,
-    }, ];
+        valueSegments: [{
+            value: 100,
+            color: "red",
+        }],
+    }];
 
     const SIMPLE_FAKE_DATA_2 = [{
         date: new Date(2015, 2, 2),
         value: 200,
+        valueSegments: [{
+            value: 100,
+            color: "red",
+        }],
     }, {
         date: new Date(2106, 2, 2),
         value: 600,
-    }, ];
+        valueSegments: [{
+            value: 100,
+            color: "red",
+        }],
+    }];
 
     const createInstance = () => {
         const element = $("<div>");
@@ -76,7 +91,7 @@ describe("TimeBrush", () => {
     });
 
     describe("data", () => {
-        it("should defult the data property to empty when data is set to an undefined", () => {
+        it("should default the data property to empty when data is set to an undefined", () => {
             const { instance } = createInstance();
             instance.data = undefined;
             expect(instance.data).to.be.deep.equal([]);
@@ -108,7 +123,14 @@ describe("TimeBrush", () => {
             const { element, instance } = createInstance();
             instance.data = SIMPLE_FAKE_DATA;
             instance.dimensions = { width: 500, height: 200 };
-            expect(element.find(".axis").text()).to.equal("AprilJulyOctober2016");
+            expect(element.find(".x.axis").text()).to.equal("AprilJulyOctober2016");
+        });
+        it("should adjust the y axis when new data is set", () => {
+            const { element, instance } = createInstance();
+            instance.data = SIMPLE_FAKE_DATA;
+            instance.showYAxis = true;
+            instance.dimensions = { width: 500, height: 200 };
+            expect(element.find(".y.axis").text()).to.equal("0204060");
         });
         it("should adjust the bars when new data is set", () => {
             const { element, instance } = createInstance();
@@ -119,6 +141,143 @@ describe("TimeBrush", () => {
             expect(bars.length).to.be.equal(SIMPLE_FAKE_DATA.length);
             expect(d3.select(bars[0]).data()[0].date).to.be.deep.equal(SIMPLE_FAKE_DATA[0].date);
             expect(d3.select(bars[1]).data()[0].date).to.be.deep.equal(SIMPLE_FAKE_DATA[1].date);
+        });
+    });
+
+    describe("showYAxis", () => {
+        it ("should not show the y axis by default", () => {
+            const { element, instance } = createInstance();
+            expect(instance.showYAxis).to.be.false;
+            instance.data = SIMPLE_FAKE_DATA;
+            instance.dimensions = { width: 500, height: 200 };
+
+            // Make sure it is 'hidden'
+            expect(element.find(".y.axis").css("display")).to.equal("none");
+        });
+        it ("should show the y axis if true", () => {
+            const { element, instance } = createInstance();
+            expect(instance.showYAxis).to.be.false;
+            instance.showYAxis = true;
+            instance.data = SIMPLE_FAKE_DATA;
+            instance.dimensions = { width: 500, height: 200 };
+
+            expect(element.find(".y.axis").css("display")).to.equal("");
+
+            // 0, 20, 40, 60
+            expect(element.find(".y.axis").text()).to.equal("0204060");
+        });
+        it ("should force a repaint if set to true after data has been loaded", () => {
+            const { element, instance } = createInstance();
+            expect(instance.showYAxis).to.be.false;
+            instance.data = SIMPLE_FAKE_DATA;
+            instance.showYAxis = true;
+            instance.dimensions = { width: 500, height: 200 };
+
+            expect(element.find(".y.axis").css("display")).to.equal("");
+            expect(element.find(".y.axis").text()).to.equal("0204060");
+        });
+        it ("should adjust the scale when data is changed", () => {
+            const { element, instance } = createInstance();
+            expect(instance.showYAxis).to.be.false;
+            instance.data = SIMPLE_FAKE_DATA;
+            instance.showYAxis = true;
+            instance.dimensions = { width: 500, height: 200 };
+
+            // Data has been changed
+            instance.data = SIMPLE_FAKE_DATA_2;
+
+            expect(element.find(".y.axis").text()).to.equal("0200400600");
+        });
+        it ("should adjust the scale when the size is changed", () => {
+            const { element, instance } = createInstance();
+            expect(instance.showYAxis).to.be.false;
+            instance.data = SIMPLE_FAKE_DATA;
+            instance.showYAxis = true;
+            instance.dimensions = { width: 500, height: 200 };
+
+            // Make sure our initial expectations are true
+            expect(element.find(".y.axis").text()).to.equal("0204060");
+
+            // Make it larger
+            instance.dimensions = { width: 500, height: 500 };
+
+            expect(element.find(".y.axis").text()).to.equal("051015202530354045505560");
+        });
+    });
+
+    describe("showYAxisReferenceLines", () => {
+        it ("should show the y axis reference lines by default", () => {
+            const { element, instance } = createInstance();
+            expect(instance.showYAxis).to.be.false;
+            instance.showYAxis = true;
+            instance.data = SIMPLE_FAKE_DATA;
+            instance.dimensions = { width: 500, height: 200 };
+
+            expect(element.find(".y.axis line").css("display")).to.equal("");
+        });
+        it ("should not show the y axis lines if false", () => {
+            const { element, instance } = createInstance();
+            expect(instance.showYAxis).to.be.false;
+            instance.showYAxis = true;
+            instance.showYAxisReferenceLines = false;
+            instance.data = SIMPLE_FAKE_DATA;
+            instance.dimensions = { width: 500, height: 200 };
+
+            expect(element.find(".y.axis line").css("display")).to.equal("none");
+        });
+        it ("should force a repaint if set to false after data has been loaded", () => {
+            const { element, instance } = createInstance();
+            expect(instance.showYAxis).to.be.false;
+            instance.data = SIMPLE_FAKE_DATA;
+            instance.showYAxis = true;
+            instance.showYAxisReferenceLines = false;
+            instance.dimensions = { width: 500, height: 200 };
+
+            expect(element.find(".y.axis line").css("display")).to.equal("none");
+        });
+    });
+
+    describe("yAxisPosition", () => {
+        it ("should show the y axis position on the left by default", () => {
+            const { element, instance } = createInstance();
+            expect(instance.showYAxis).to.be.false;
+            instance.showYAxis = true;
+            instance.data = SIMPLE_FAKE_DATA;
+            instance.dimensions = { width: 500, height: 200 };
+
+            // The axis is on the left by default, and 0 means to movement
+            expect(element.find(".y.axis").attr("transform")).to.equal("translate(0, 0)");
+
+            // We make the x2 positive to draw the line to the right
+            expect(element.find(".y.axis line").attr("x2")).to.equal("460");
+        });
+        it ("should show the y axis on the right if set on the right", () => {
+            const { element, instance } = createInstance();
+            expect(instance.showYAxis).to.be.false;
+            instance.showYAxis = true;
+            instance.yAxisPosition = AxisPosition.Right;
+            instance.data = SIMPLE_FAKE_DATA;
+            instance.dimensions = { width: 500, height: 200 };
+
+            // We move the axis to the right
+            expect(element.find(".y.axis").attr("transform")).to.equal("translate(473, 0)");
+
+            // We make the x2 negative to draw the line backward from the right
+            expect(element.find(".y.axis line").attr("x2")).to.equal("-460");
+        });
+        it ("should force a repaint if value is changed", () => {
+            const { element, instance } = createInstance();
+            expect(instance.showYAxis).to.be.false;
+            instance.data = SIMPLE_FAKE_DATA;
+            instance.showYAxis = true;
+            instance.yAxisPosition = AxisPosition.Right;
+            instance.dimensions = { width: 500, height: 200 };
+
+            // We move the axis to the right
+            expect(element.find(".y.axis").attr("transform")).to.equal("translate(473, 0)");
+
+            // We make the x2 negative to draw the line backward from the right
+            expect(element.find(".y.axis line").attr("x2")).to.equal("-460");
         });
     });
 

@@ -24,10 +24,10 @@
 
 import DataView = powerbi.DataView;
 import SelectionId = powerbi.visuals.SelectionId;
-import { TimeBrushVisualDataItem } from "./models";
-/* tslint:disable */
-const moment = require("moment");
-/* tslint:enable */
+import { TimeBrushVisualDataItem, IColorSettings } from "./models";
+import { calculateSegments, get } from "@essex/pbi-base";
+import * as moment from "moment";
+const ldget = require("lodash/get"); // tslint:disable-line
 
 const MOMENT_FORMATS = [
     moment.ISO_8601,
@@ -44,7 +44,7 @@ const MOMENT_FORMATS = [
     "DD",
 ];
 
-export default function converter(dataView: DataView): TimeBrushVisualDataItem[] {
+export default function converter(dataView: DataView, settings?: IConversionSettings): TimeBrushVisualDataItem[] {
     "use strict";
     let items: TimeBrushVisualDataItem[];
     let dataViewCategorical = dataView && dataView.categorical;
@@ -52,18 +52,67 @@ export default function converter(dataView: DataView): TimeBrushVisualDataItem[]
     // Must be two columns: times and values
     if (dataViewCategorical && dataViewCategorical.categories && dataViewCategorical.values && dataViewCategorical.values.length) {
         if (dataViewCategorical.categories.length === 1) {
-            items = dataViewCategorical.categories[0].values.map((date, i) => {
-                let coercedDate = coerceDate(date);
-                return coercedDate ? {
-                    date: coercedDate,
-                    rawDate: date,
-                    value: dataViewCategorical.values[0].values[i],
-                    identity: SelectionId.createWithId(dataViewCategorical.categories[0].identity[i]),
-                } : null;
+            const { defaultBarColor, seriesColors, reverseBars } = (settings || {}) as IConversionSettings;
+            const values = dataViewCategorical.values;
+            const gradient = getGradientFromSettings(settings || {});
+
+            // We should only add gradients if the data supports gradients, and the user has gradients enabled
+            const shouldAddGradients = dataSupportsGradients(dataView) && settings.useGradient;
+
+            // We should only colorize instances if the data supports colorized instances and the user isn't
+            // trying to use gradients
+            const shouldAddInstanceColors = dataSupportsColorizedInstances(dataView) && !settings.useGradient;
+            const segmentInfo = calculateSegments(
+                values,
+                dataSupportsDefaultColor(dataView) ? defaultBarColor : undefined,
+                shouldAddGradients ? gradient : undefined,
+                shouldAddInstanceColors ? seriesColors : undefined);
+            const dates = dataViewCategorical.categories[0].values;
+            items = dates.map((date, i) => {
+                return convertItem(
+                    date,
+                    segmentInfo,
+                    i,
+                    dataViewCategorical.categories[0].identity[i],
+                    values,
+                    reverseBars !== false);
             }).filter(n => !!n);
         }
     }
     return items;
+}
+
+/**
+ * Converts an individual time brush item
+ */
+export function convertItem(
+    date: any,
+    segmentInfo: { name: string; color: any; }[],
+    valueIdx: number,
+    categoryIdentity: powerbi.DataViewScopeIdentity,
+    values: powerbi.DataViewValueColumns,
+    reverseBars: boolean) {
+    "use strict";
+    let coercedDate = coerceDate(date);
+    let total = 0;
+    segmentInfo.forEach((n, j) => {
+        total += (values[j].values[valueIdx] as number || 0);
+    });
+    let valueSegments = segmentInfo.map((n, j) => {
+        const segVal = values[j].values[valueIdx] as number;
+        return {
+            value: parseFloat(((total === 0 ? 0 : segVal / total) * 100).toFixed(2)),
+            color: n.color,
+        };
+    }).filter(n => n.value > 0.1);
+    valueSegments = reverseBars ? valueSegments.reverse() : valueSegments;
+    return coercedDate ? {
+        date: coercedDate,
+        rawDate: date,
+        value: total,
+        identity: SelectionId.createWithId(categoryIdentity),
+        valueSegments,
+    } as TimeBrushVisualDataItem : null;
 }
 
 /**
@@ -92,3 +141,69 @@ export function coerceDate(dateValue: any): Date {
     }
     return dateValue;
 }
+
+/**
+ * True if the given dataview supports multiple value segments
+ */
+export function dataSupportsValueSegments(dv: powerbi.DataView) {
+    "use strict";
+    return ldget(dv, "categorical.values.length", 0) > 0;
+}
+
+/**
+ * Returns true if the data supports default colors
+ */
+export function dataSupportsDefaultColor(dv: powerbi.DataView) {
+    "use strict";
+
+    // TODO: Disabled for now, cause it doesn't really work well with multiple
+    // bars without identities
+    // // Default color only works on a single value instance
+    // if (dataSupportsValueSegments(dv)) {
+    //     return get(dv, v => v.categorical.values.length, 0) === 1;
+    // }
+
+    return false;
+}
+
+/**
+ * Returns true if gradients can be used with the data
+ */
+export function dataSupportsGradients(dv: powerbi.DataView) {
+    "use strict";
+
+    // We can use gradients on ANY data that has more than one value, otherwise it doesn't make sense
+    if (dataSupportsValueSegments(dv)) {
+        return get(dv, v => v.categorical.values.length, 0) > 0;
+    }
+    return false;
+}
+
+/**
+ * Returns true if individiual instances of the dataset can be uniquely colored
+ */
+export function dataSupportsColorizedInstances(dv: powerbi.DataView) {
+    "use strict";
+
+    // If there are no value segments, then there is definitely going to be no instances
+    if (dataSupportsValueSegments(dv)) {
+        // We can uniquely color items that have an identity associated with it
+        const grouped = dv.categorical.values.grouped();
+        return grouped.filter(n => !!n.identity).length > 0;
+    }
+    return false;
+}
+
+/**
+ * Retrieves the gradient info from the given set of settings.
+ */
+export function getGradientFromSettings(settings: IColorSettings) {
+    "use strict";
+    const { useGradient, gradient } = (settings || {}) as IColorSettings;
+    const { startColor, endColor, startValue, endValue } = gradient;
+    if (useGradient && startColor && endColor) {
+        return { startColor, endColor, startValue, endValue };
+    }
+}
+
+export type IConversionSettings = IColorSettings & { reverseBars?: boolean };

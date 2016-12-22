@@ -24,6 +24,7 @@
 
 import { TimeBrushDataItem } from "../models";
 import SelectionId = powerbi.visuals.SelectionId;
+import { IColoredObject } from "@essex/pbi-base";
 
 /**
  * The data item used by the TimeBrushVisual
@@ -39,4 +40,63 @@ export interface TimeBrushVisualDataItem extends TimeBrushDataItem {
      * The raw unparsed date for this item
      */
     rawDate: any;
+}
+
+/**
+ * Represents a set of color settings for the time brush
+ */
+export interface IColorSettings {
+
+    /**
+     * The default bar color to use
+     */
+    defaultBarColor?: string;
+
+    /**
+     * The individual colors for each series
+     */
+    seriesColors?: IColoredObject[];
+
+    /**
+     * Whether or not to use a gradient
+     */
+    useGradient?: boolean;
+
+    /**
+     * The settings for the gradient
+     */
+    gradient?: IGradientSetting;
+}
+
+/**
+ * Represents a set of settings required to create a gradient
+ */
+export interface IGradientSetting {
+    /**
+     * The start color of the gradient
+     */
+    startColor?: string;
+
+    /**
+     * The start value of the gradient
+     */
+    startValue?: number;
+
+    /**
+     * The end color of the gradient
+     */
+    endColor?: string;
+
+    /**
+     * The end value of the gradient
+     */
+    endValue?: number;
+}
+
+/**
+ * Represents the mode to color things
+ */
+export enum ColorMode {
+    Gradient = 1,
+    Instance = 2
 }
