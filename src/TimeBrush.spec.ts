@@ -249,7 +249,7 @@ describe("TimeBrush", () => {
             expect(element.find(".y.axis").attr("transform")).to.equal("translate(0, 0)");
 
             // We make the x2 positive to draw the line to the right
-            expect(element.find(".y.axis line").attr("x2")).to.equal("460");
+            expect(element.find(".y.axis line").attr("x2")).to.equal("470");
         });
         it ("should show the y axis on the right if set on the right", () => {
             const { element, instance } = createInstance();
@@ -260,10 +260,10 @@ describe("TimeBrush", () => {
             instance.dimensions = { width: 500, height: 200 };
 
             // We move the axis to the right
-            expect(element.find(".y.axis").attr("transform")).to.equal("translate(473, 0)");
+            expect(element.find(".y.axis").attr("transform")).to.equal("translate(470, 0)");
 
             // We make the x2 negative to draw the line backward from the right
-            expect(element.find(".y.axis line").attr("x2")).to.equal("-460");
+            expect(element.find(".y.axis line").attr("x2")).to.equal("-470");
         });
         it ("should force a repaint if value is changed", () => {
             const { element, instance } = createInstance();
@@ -274,10 +274,10 @@ describe("TimeBrush", () => {
             instance.dimensions = { width: 500, height: 200 };
 
             // We move the axis to the right
-            expect(element.find(".y.axis").attr("transform")).to.equal("translate(473, 0)");
+            expect(element.find(".y.axis").attr("transform")).to.equal("translate(470, 0)");
 
             // We make the x2 negative to draw the line backward from the right
-            expect(element.find(".y.axis line").attr("x2")).to.equal("-460");
+            expect(element.find(".y.axis line").attr("x2")).to.equal("-470");
         });
     });
 

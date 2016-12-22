@@ -463,7 +463,7 @@ export class TimeBrush {
                     .ticks(tickCount))
                 .call((sel) => {
                     let yAxisWidth = 0;
-                    const axisPadding = 7;
+                    const axisPadding = 10;
                     // Do some calculations to know how much to strink the chart area
                     sel.selectAll("text").each(function() {
                         const rect = (<Element>this).getBoundingClientRect();
@@ -472,7 +472,7 @@ export class TimeBrush {
                             yAxisWidth = width;
                         }
                     });
-                    margin[orientation] = Math.ceil(Math.max(axisPadding + yAxisWidth, 20));
+                    margin[orientation] = axisPadding + yAxisWidth;
                     let width = this._dimensions.width - margin.left - margin.right;
 
                     // Right now we don't need to see the domain line (the vertical line next to the Y axis labels)
