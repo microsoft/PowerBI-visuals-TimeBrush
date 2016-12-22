@@ -132,6 +132,11 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
                 if (newState.barWidth !== this._internalState.barWidth) {
                     this.timeBrush.barWidth = newState.barWidth;
                 }
+                if (!_.isEqual(newState.yAxisSettings, this._internalState.yAxisSettings)) {
+                    this.timeBrush.showYAxis = newState.yAxisSettings.show;
+                    this.timeBrush.yAxisPosition = newState.yAxisSettings.yAxisPosition;
+                    this.timeBrush.showYAxisReferenceLines = newState.yAxisSettings.showReferenceLines;
+                }
             }
 
             this.state = newState.toJSONObject();

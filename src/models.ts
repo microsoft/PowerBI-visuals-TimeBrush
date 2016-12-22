@@ -57,3 +57,11 @@ export interface TimeBrushValueSegment {
      */
     color: string;
 }
+
+/**
+ * Defines a position of an axis
+ */
+export enum AxisPosition {
+    Left = 1,
+    Right = 2,
+}
