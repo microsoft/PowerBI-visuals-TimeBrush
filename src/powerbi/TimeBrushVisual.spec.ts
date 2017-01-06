@@ -313,7 +313,7 @@ describe("TimeBrushVisual", () => {
             expect(timeBrush.selectedRange).to.be.deep.equal([new Date(date.getTime() - 1), new Date(date.getTime() + 1)]);
         });
 
-        it("should clear the selection if the underlying datasource changes", () => {
+        it("should clear the selection if the underlying datasource changes, and there was something already selected in the timebrush", () => { // tslint:disable-line
             const { instance, timeBrush } = createVisual();
             const simpleDataUpdate = getSimpleDataUpdate();
             const changedDatasetOptions = getDataWithBucketsAndSettingsUpdate().options;
@@ -331,18 +331,58 @@ describe("TimeBrushVisual", () => {
             expect(timeBrush.selectedRange).to.be.empty;
         });
 
-        it("should NOT clear the selection if the underlying datasource hasn't changed", () => {
+        it("should clear the selection if the underlying datasource changes", () => {
             const { instance, timeBrush } = createVisual();
-            const simpleDataUpdate = getDataWithSelection();
+            const simpleDataUpdate = getSimpleDataUpdate();
+            const dataSetWithSelection = getDataWithSelection();
 
-            // Perform the first update
-            instance.update(simpleDataUpdate.options);
+            // After this update, stuff should be selected
+            instance.update(dataSetWithSelection.options);
 
-            // Perform the second update
+            // Make sure stuff is selected
+            expect(instance.state.range).to.not.be.empty;
+
+            // Change the dataset with no selection, and an entirely different column
             instance.update(simpleDataUpdate.options);
 
             // Make sure the timebrush was cleared
+            expect(timeBrush.selectedRange).to.be.empty;
+
+            // Make sure the state was cleared
+            expect(instance.state.range).to.be.empty;
+        });
+
+        it("should clear the selection if the underlying datasource changes", () => {
+            const { instance, timeBrush } = createVisual();
+            const simpleDataUpdate = getSimpleDataUpdate();
+            const dataSetWithSelection = getDataWithSelection();
+
+            // Perform the first update
+            instance.update(dataSetWithSelection.options);
+
+            // Change the dataset
+            instance.update(simpleDataUpdate.options);
+
+            // Make sure the timebrush was cleared
+            expect(timeBrush.selectedRange).to.be.empty;
+        });
+
+        it("should NOT clear the selection if the underlying datasource hasn't changed", () => {
+            const { instance, timeBrush } = createVisual();
+            const selUpdate = getDataWithSelection();
+            const selUpdate2 = getDataWithSelection();
+
+            // Perform the first update
+            instance.update(selUpdate.options);
+
+            // Perform the second update
+            instance.update(selUpdate2.options);
+
+            // Make sure the timebrush was not cleared
             expect(timeBrush.selectedRange).to.not.be.empty;
+
+            // Make sure the state was not cleared
+            expect(instance.state.range).to.not.be.empty;
         });
     });
 });
