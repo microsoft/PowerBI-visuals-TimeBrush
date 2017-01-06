@@ -279,7 +279,11 @@ describe("TimeBrushVisual", () => {
 
             instance.update(options);
 
+            // Make sure it is on the timebrush
             expect(timeBrush.selectedRange).to.be.deep.equal(selectedRange);
+
+            // Make sure the state was not cleared
+            expect(instance.state.range).to.not.be.empty;
         });
 
         // Now that I think of it, why??
