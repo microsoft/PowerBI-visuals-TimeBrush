@@ -441,9 +441,14 @@ export class TimeBrush {
      * @param margin The margins of the chart area
      */
     private renderYAxis(margin: any) {
+        const actualDims = this.element[0].getBoundingClientRect();
+        const actualWidth = actualDims.right - actualDims.left;
+
+        // Default to 1 if we have no data
+        let scale = actualWidth > 0 && this.dimensions.width > 0 ? this.dimensions.width / actualWidth : 1;
 
         // Add some padding for the y axis labels
-        margin.top = this.showYAxis ? 5 : 0;
+        margin.top = this.showYAxis ? 10 * scale : 0;
 
         // Update the y axis scale
         let height = this._dimensions.height - margin.top - margin.bottom;
@@ -472,6 +477,9 @@ export class TimeBrush {
                             yAxisWidth = width;
                         }
                     });
+
+                    yAxisWidth *= scale;
+
                     margin[orientation] = axisPadding + yAxisWidth;
                     let width = this._dimensions.width - margin.left - margin.right;
 
@@ -481,16 +489,17 @@ export class TimeBrush {
                     // If we are supposed to render reference lines, then color and size them appropriately
                     const referenceLines = sel.selectAll("line");
                     if (this.showYAxisReferenceLines) {
+                        const refWidth = width - (axisPadding / 2);
                         referenceLines
                             .style("stroke", this.yAxisReferenceLineColor)
-                            .attr("x2", orientation === "left" ? width : -width);
+                            .attr("x2", orientation === "left" ? refWidth : -refWidth);
                     }
                     referenceLines.style("display", this.showYAxisReferenceLines ? null : "none");
 
                     const yAxisPosition =
                         orientation === "left" ?
-                            0 :
-                            Math.floor(this.dimensions.width - yAxisWidth - margin.left - axisPadding);
+                            axisPadding / 2 :
+                            this.dimensions.width - yAxisWidth - margin.left - (axisPadding * 1.5);
 
                     // Moves the axis to the correct position
                     sel.attr("transform", () => `translate(${yAxisPosition}, 0)`);
