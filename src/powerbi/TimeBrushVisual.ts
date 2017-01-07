@@ -270,8 +270,7 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
                 if (source) {
                     dataSourceChanged =
                         filterSource.entity !== source.entity ||
-                        filterSource.schema !== source.schema ||
-                        filterSource.variable !== source.variable;
+                        filterSource.schema !== source.schema;
                 }
             }
 
@@ -296,6 +295,8 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
             }
 
             state.range = this.timeBrush.selectedRange;
+        } else if (dataView && !oldFilter) {
+            state.range = undefined;
         }
     }
 
