@@ -1,5 +1,5 @@
 import { boolSetting as bool, enumSetting } from "@essex/pbi-base";
-import { AxisPosition } from "../../models";
+import { AxisPosition } from "@essex/timebrush";
 
 /**
  * Represents the set of YAxis settings

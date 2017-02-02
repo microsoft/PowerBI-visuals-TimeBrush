@@ -1,11 +1,10 @@
 # Installed Modules
-/node_modules/
-/typings/
+node_modules/
 
 # Temp Files
 .DS_Store
-/.scripts
-/dump
+.scripts
+dump
 
 # IDE / Editors
 .vscode
@@ -16,11 +15,8 @@ build/
 dist/
 docs/
 *.js
-!/*.js
+!/packages/*/*.js
 *.d.ts
-!/src/references.d.ts
-!/base/powerbi/powerbi.d.ts
-!/base/powerbi/references.d.ts
 build.out
 
 # Rando

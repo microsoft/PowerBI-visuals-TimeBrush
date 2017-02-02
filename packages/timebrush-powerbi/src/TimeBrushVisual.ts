@@ -25,7 +25,7 @@
 declare var _: any;
 import { StatefulVisual } from "@essex/pbi-stateful/lib/StatefulVisual";
 
-import { TimeBrush as TimeBrushImpl } from "../TimeBrush";
+import { TimeBrush as TimeBrushImpl } from "@essex/timebrush";
 import { TimeBrushVisualDataItem } from "./models";
 import { default as dataConverter, coerceDate } from "./dataConversion";
 import {
@@ -54,7 +54,7 @@ const MY_CSS_MODULE = require("!css!sass!./css/TimeBrushVisual.scss");
 const ldget = require("lodash/get");
 /* tslint:enable */
 
-@Visual(require("../build").output.PowerBI)
+@Visual(require("./build").output.PowerBI)
 @receiveDimensions
 @capabilities(myCapabilities)
 export default class TimeBrush extends StatefulVisual<TimeBrushState> {
