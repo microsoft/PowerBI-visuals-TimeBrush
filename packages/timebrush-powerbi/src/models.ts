@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-import { TimeBrushDataItem } from "../models";
+import { TimeBrushDataItem } from "@essex/timebrush";
 import SelectionId = powerbi.visuals.SelectionId;
 import { IColoredObject } from "@essex/pbi-base";
 

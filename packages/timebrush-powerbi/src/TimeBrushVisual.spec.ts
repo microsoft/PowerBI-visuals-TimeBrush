@@ -28,7 +28,7 @@ import dataWithBucketsAndSettings from "./test/dataWithBucketsAndSettings";
 import dataWithSelection from "./test/dataWithSelections";
 import { Utils as SpecUtils } from "@essex/pbi-base/dist/spec/visualHelpers";
 import { expect } from "chai";
-import { TimeBrush } from "../TimeBrush";
+import { TimeBrush } from "@essex/timebrush";
 import TimeBrushVisual from "./TimeBrushVisual";
 
 describe("TimeBrushVisual", () => {
