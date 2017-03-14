@@ -9,6 +9,7 @@ Time Brush lets you filter a time-based dataset by directly dragging or brushing
 > This visual is currently in beta testing and is undergoing active development.
 
 ## Usage
+* Install [node.js 6+](https://nodejs.org)
 * Install [yarn](https://yarnpkg.com/lang/en/docs/install)
 * Run `yarn` on the project directory, which will install all the dependencies
 * Run `yarn test` which will lint, test, and compile the `timebrush`, `timebrush-react` and `timebrush-powerbi` packages.
