@@ -25,6 +25,7 @@
 const baseOptions = {"viewport":{"width":489.1571906354515,"height":304.4882943143813},"viewMode":1,"type":2,"operationKind":0,"dataViews":[{"metadata":{"objects":{"y-Axis":{ "showYAxis": true, "showReferenceLines": false, "yAxisPosition": 2}, "dataPoint":{"colorMode":1,"startColor":{"solid":{"color":"#FE9666"}},"startValue":50},"selection":{"clearSelectionAfterDataChange":false},"display":{"reverseBars":true,"barWidth":10}},"columns":[{"roles":{"Series":true},"type":{"underlyingType":260,"category":<any>null},"format":"0","displayName":"bucket","queryName":"Attributes.bucket","expr":{"_kind":2,"source":{"_kind":0,"entity":"Attributes","variable":"a"},"ref":"bucket"}},{"roles":{"Values":true},"type":{"underlyingType":260,"category":<any>null},"displayName":"Count of doc_id","queryName":"CountNonNull(Attributes.doc_id)","expr":{"_kind":4,"arg":{"_kind":2,"source":{"_kind":0,"entity":"Attributes","variable":"a"},"ref":"doc_id"},"func":5}},{"roles":{"Values":true},"type":{"underlyingType":260,"category":<any>null},"displayName":"Count of doc_id","queryName":"CountNonNull(Attributes.doc_id)","expr":{"_kind":4,"arg":{"_kind":2,"source":{"_kind":0,"entity":"Attributes","variable":"a"},"ref":"doc_id"},"func":5}},{"roles":{"Values":true},"type":{"underlyingType":260,"category":<any>null},"displayName":"Count of doc_id","queryName":"CountNonNull(Attributes.doc_id)","expr":{"_kind":4,"arg":{"_kind":2,"source":{"_kind":0,"entity":"Attributes","variable":"a"},"ref":"doc_id"},"func":5}},{"roles":{"Values":true},"type":{"underlyingType":260,"category":<any>null},"displayName":"Count of doc_id","queryName":"CountNonNull(Attributes.doc_id)","expr":{"_kind":4,"arg":{"_kind":2,"source":{"_kind":0,"entity":"Attributes","variable":"a"},"ref":"doc_id"},"func":5}},{"roles":{"Values":true},"type":{"underlyingType":260,"category":<any>null},"displayName":"Count of doc_id","queryName":"CountNonNull(Attributes.doc_id)","expr":{"_kind":4,"arg":{"_kind":2,"source":{"_kind":0,"entity":"Attributes","variable":"a"},"ref":"doc_id"},"func":5}},{"roles":{"Values":true},"type":{"underlyingType":260,"category":<any>null},"displayName":"Count of doc_id","queryName":"CountNonNull(Attributes.doc_id)","expr":{"_kind":4,"arg":{"_kind":2,"source":{"_kind":0,"entity":"Attributes","variable":"a"},"ref":"doc_id"},"func":5}},{"roles":{"Values":true},"type":{"underlyingType":260,"category":<any>null},"displayName":"Count of doc_id","queryName":"CountNonNull(Attributes.doc_id)","expr":{"_kind":4,"arg":{"_kind":2,"source":{"_kind":0,"entity":"Attributes","variable":"a"},"ref":"doc_id"},"func":5}},{"roles":{"Values":true},"type":{"underlyingType":260,"category":<any>null},"displayName":"Count of doc_id","queryName":"CountNonNull(Attributes.doc_id)","expr":{"_kind":4,"arg":{"_kind":2,"source":{"_kind":0,"entity":"Attributes","variable":"a"},"ref":"doc_id"},"func":5}},{"roles":{"Values":true},"type":{"underlyingType":260,"category":<any>null},"displayName":"Count of doc_id","queryName":"CountNonNull(Attributes.doc_id)","expr":{"_kind":4,"arg":{"_kind":2,"source":{"_kind":0,"entity":"Attributes","variable":"a"},"ref":"doc_id"},"func":5}},{"roles":{"Values":true},"type":{"underlyingType":260,"category":<any>null},"displayName":"Count of doc_id","queryName":"CountNonNull(Attributes.doc_id)","expr":{"_kind":4,"arg":{"_kind":2,"source":{"_kind":0,"entity":"Attributes","variable":"a"},"ref":"doc_id"},"func":5}},{"roles":{"Values":true},"type":{"underlyingType":260,"category":<any>null},"displayName":"Count of doc_id","queryName":"CountNonNull(Attributes.doc_id)","expr":{"_kind":4,"arg":{"_kind":2,"source":{"_kind":0,"entity":"Attributes","variable":"a"},"ref":"doc_id"},"func":5}},{"roles":{"Values":true},"type":{"underlyingType":260,"category":<any>null},"displayName":"Count of doc_id","queryName":"CountNonNull(Attributes.doc_id)","expr":{"_kind":4,"arg":{"_kind":2,"source":{"_kind":0,"entity":"Attributes","variable":"a"},"ref":"doc_id"},"func":5}},{"roles":{"Times":true},"type":{"underlyingType":519,"category":<any>null,"temporalType":{"underlyingType":519}},"format":"G","displayName":"date","queryName":"Documents.date","expr":{"_kind":2,"source":{"_kind":0,"entity":"Documents","variable":"d"},"ref":"date"}}]},"categorical":{"categories":[{"source":{"roles":{"Times":true},"type":{"underlyingType":519,"category":<any>null,"temporalType":{"underlyingType":519}},"format":"G","displayName":"date","queryName":"Documents.date","expr":{"_kind":2,"source":{"_kind":0,"entity":"Documents","variable":"d"},"ref":"date"}},"identity":[{"_expr":{"_kind":13,"comparison":0,"left":{"_kind":2,"source":{"_kind":0,"entity":"Documents"},"ref":"date"},"right":{"_kind":17,"type":{"underlyingType":519,"category":<any>null,"temporalType":{"underlyingType":519}},"value":"2015-02-01T09:12:39.490Z","valueEncoded":"datetime'2015-02-01T01:12:39.49'"}},"_key":{"factoryMethod":<any>null,"value":"{\"comp\":{\"k\":0,\"l\":{\"col\":{\"s\":{\"e\":\"Documents\"},\"r\":\"date\"}},\"r\":{\"const\":{\"t\":7,\"v\":\"2015-02-01T09:12:39.490Z\"}}}}"}},{"_expr":{"_kind":13,"comparison":0,"left":{"_kind":2,"source":{"_kind":0,"entity":"Documents"},"ref":"date"},"right":{"_kind":17,"type":{"underlyingType":519,"category":<any>null,"temporalType":{"underlyingType":519}},"value":"2015-02-01T09:50:34.623Z","valueEncoded":"datetime'2015-02-01T01:50:34.623'"}},"_key":{"factoryMethod":<any>null,"value":"{\"comp\":{\"k\":0,\"l\":{\"col\":{\"s\":{\"e\":\"Documents\"},\"r\":\"date\"}},\"r\":{\"const\":{\"t\":7,\"v\":\"2015-02-01T09:50:34.623Z\"}}}}"}},{"_expr":{"_kind":13,"comparison":0,"left":{"_kind":2,"source":{"_kind":0,"entity":"Documents"},"ref":"date"},"right":{"_kind":17,"type":{"underlyingType":519,"category":<any>null,"temporalType":{"underlyingType":519}},"value":"2015-02-01T09:53:10.430Z","valueEncoded":"datetime'2015-02-01T01:53:10.43'"}},"_key":{"factoryMethod":<any>null,"value":"{\"comp\":{\"k\":0,\"l\":{\"col\":{\"s\":{\"e\":\"Documents\"},\"r\":\"date\"}},\"r\":{\"const\":{\"t\":7,\"v\":\"2015-02-01T09:53:10.430Z\"}}}}"}},{"_expr":{"_kind":13,"comparison":0,"left":{"_kind":2,"source":{"_kind":0,"entity":"Documents"},"ref":"date"},"right":{"_kind":17,"type":{"underlyingType":519,"category":<any>null,"temporalType":{"underlyingType":519}},"value":"2015-02-01T10:20:44.597Z","valueEncoded":"datetime'2015-02-01T02:20:44.597'"}},"_key":{"factoryMethod":<any>null,"value":"{\"comp\":{\"k\":0,\"l\":{\"col\":{\"s\":{\"e\":\"Documents\"},\"r\":\"date\"}},\"r\":{\"const\":{\"t\":7,\"v\":\"2015-02-01T10:20:44.597Z\"}}}}"}},{"_expr":{"_kind":13,"comparison":0,"left":{"_kind":2,"source":{"_kind":0,"entity":"Documents"},"ref":"date"},"right":{"_kind":17,"type":{"underlyingType":519,"category":<any>null,"temporalType":{"underlyingType":519}},"value":"2015-02-01T10:51:02.040Z","valueEncoded":"datetime'2015-02-01T02:51:02.04'"}},"_key":{"factoryMethod":<any>null,"value":"{\"comp\":{\"k\":0,\"l\":{\"col\":{\"s\":{\"e\":\"Documents\"},\"r\":\"date\"}},\"r\":{\"const\":{\"t\":7,\"v\":\"2015-02-01T10:51:02.040Z\"}}}}"}},{"_expr":{"_kind":13,"comparison":0,"left":{"_kind":2,"source":{"_kind":0,"entity":"Documents"},"ref":"date"},"right":{"_kind":17,"type":{"underlyingType":519,"category":<any>null,"temporalType":{"underlyingType":519}},"value":"2015-02-01T11:41:19.393Z","valueEncoded":"datetime'2015-02-01T03:41:19.393'"}},"_key":{"factoryMethod":<any>null,"value":"{\"comp\":{\"k\":0,\"l\":{\"col\":{\"s\":{\"e\":\"Documents\"},\"r\":\"date\"}},\"r\":{\"const\":{\"t\":7,\"v\":\"2015-02-01T11:41:19.393Z\"}}}}"}},{"_expr":{"_kind":13,"comparison":0,"left":{"_kind":2,"source":{"_kind":0,"entity":"Documents"},"ref":"date"},"right":{"_kind":17,"type":{"underlyingType":519,"category":<any>null,"temporalType":{"underlyingType":519}},"value":"2015-02-01T12:08:24.673Z","valueEncoded":"datetime'2015-02-01T04:08:24.673'"}},"_key":{"factoryMethod":<any>null,"value":"{\"comp\":{\"k\":0,\"l\":{\"col\":{\"s\":{\"e\":\"Documents\"},\"r\":\"date\"}},\"r\":{\"const\":{\"t\":7,\"v\":\"2015-02-01T12:08:24.673Z\"}}}}"}},{"_expr":{"_kind":13,"comparison":0,"left":{"_kind":2,"source":{"_kind":0,"entity":"Documents"},"ref":"date"},"right":{"_kind":17,"type":{"underlyingType":519,"category":<any>null,"temporalType":{"underlyingType":519}},"value":"2015-02-01T12:16:45.757Z","valueEncoded":"datetime'2015-02-01T04:16:45.757'"}},"_key":{"factoryMethod":<any>null,"value":"{\"comp\":{\"k\":0,\"l\":{\"col\":{\"s\":{\"e\":\"Documents\"},\"r\":\"date\"}},\"r\":{\"const\":{\"t\":7,\"v\":\"2015-02-01T12:16:45.757Z\"}}}}"}},{"_expr":{"_kind":13,"comparison":0,"left":{"_kind":2,"source":{"_kind":0,"entity":"Documents"},"ref":"date"},"right":{"_kind":17,"type":{"underlyingType":519,"category":<any>null,"temporalType":{"underlyingType":519}},"value":"2015-02-01T12:26:17.947Z","valueEncoded":"datetime'2015-02-01T04:26:17.947'"}},"_key":{"factoryMethod":<any>null,"value":"{\"comp\":{\"k\":0,\"l\":{\"col\":{\"s\":{\"e\":\"Documents\"},\"r\":\"date\"}},\"r\":{\"const\":{\"t\":7,\"v\":\"2015-02-01T12:26:17.947Z\"}}}}"}},{"_expr":{"_kind":13,"comparison":0,"left":{"_kind":2,"source":{"_kind":0,"entity":"Documents"},"ref":"date"},"right":{"_kind":17,"type":{"underlyingType":519,"category":<any>null,"temporalType":{"underlyingType":519}},"value":"2015-02-01T12:32:56.097Z","valueEncoded":"datetime'2015-02-01T04:32:56.097'"}},"_key":{"factoryMethod":<any>null,"value":"{\"comp\":{\"k\":0,\"l\":{\"col\":{\"s\":{\"e\":\"Documents\"},\"r\":\"date\"}},\"r\":{\"const\":{\"t\":7,\"v\":\"2015-02-01T12:32:56.097Z\"}}}}"}}],"identityFields":[{"_kind":2,"source":{"_kind":0,"entity":"Documents"},"ref":"date"}],"values":["2015-02-01T09:12:39.490Z","2015-02-01T09:50:34.623Z","2015-02-01T09:53:10.430Z","2015-02-01T10:20:44.597Z","2015-02-01T10:51:02.040Z","2015-02-01T11:41:19.393Z","2015-02-01T12:08:24.673Z","2015-02-01T12:16:45.757Z","2015-02-01T12:26:17.947Z","2015-02-01T12:32:56.097Z"]}],"values":[{"source":{"roles":{"Values":true},"type":{"underlyingType":260,"category":<any>null},"displayName":"Count of doc_id","queryName":"CountNonNull(Attributes.doc_id)","expr":{"_kind":4,"arg":{"_kind":2,"source":{"_kind":0,"entity":"Attributes","variable":"a"},"ref":"doc_id"},"func":5}},"values":[<any>null,<any>null,4,2,<any>null,1,1,<any>null,1,1]},{"source":{"roles":{"Values":true},"type":{"underlyingType":260,"category":<any>null},"displayName":"Count of doc_id","queryName":"CountNonNull(Attributes.doc_id)","expr":{"_kind":4,"arg":{"_kind":2,"source":{"_kind":0,"entity":"Attributes","variable":"a"},"ref":"doc_id"},"func":5}},"values":[1,<any>null,1,1,1,1,<any>null,<any>null,2,1]},{"source":{"roles":{"Values":true},"type":{"underlyingType":260,"category":<any>null},"displayName":"Count of doc_id","queryName":"CountNonNull(Attributes.doc_id)","expr":{"_kind":4,"arg":{"_kind":2,"source":{"_kind":0,"entity":"Attributes","variable":"a"},"ref":"doc_id"},"func":5}},"values":[<any>null,<any>null,1,4,1,3,<any>null,1,1,1]},{"source":{"roles":{"Values":true},"type":{"underlyingType":260,"category":<any>null},"displayName":"Count of doc_id","queryName":"CountNonNull(Attributes.doc_id)","expr":{"_kind":4,"arg":{"_kind":2,"source":{"_kind":0,"entity":"Attributes","variable":"a"},"ref":"doc_id"},"func":5}},"values":[<any>null,<any>null,1,2,1,2,<any>null,<any>null,1,<any>null]},{"source":{"roles":{"Values":true},"type":{"underlyingType":260,"category":<any>null},"displayName":"Count of doc_id","queryName":"CountNonNull(Attributes.doc_id)","expr":{"_kind":4,"arg":{"_kind":2,"source":{"_kind":0,"entity":"Attributes","variable":"a"},"ref":"doc_id"},"func":5}},"values":[<any>null,<any>null,3,<any>null,2,3,<any>null,<any>null,<any>null,<any>null]},{"source":{"roles":{"Values":true},"type":{"underlyingType":260,"category":<any>null},"displayName":"Count of doc_id","queryName":"CountNonNull(Attributes.doc_id)","expr":{"_kind":4,"arg":{"_kind":2,"source":{"_kind":0,"entity":"Attributes","variable":"a"},"ref":"doc_id"},"func":5}},"values":[<any>null,<any>null,2,1,1,<any>null,<any>null,<any>null,<any>null,<any>null]},{"source":{"roles":{"Values":true},"type":{"underlyingType":260,"category":<any>null},"displayName":"Count of doc_id","queryName":"CountNonNull(Attributes.doc_id)","expr":{"_kind":4,"arg":{"_kind":2,"source":{"_kind":0,"entity":"Attributes","variable":"a"},"ref":"doc_id"},"func":5}},"values":[1,<any>null,2,1,2,1,<any>null,1,1,<any>null]},{"source":{"roles":{"Values":true},"type":{"underlyingType":260,"category":<any>null},"displayName":"Count of doc_id","queryName":"CountNonNull(Attributes.doc_id)","expr":{"_kind":4,"arg":{"_kind":2,"source":{"_kind":0,"entity":"Attributes","variable":"a"},"ref":"doc_id"},"func":5}},"values":[<any>null,<any>null,1,<any>null,<any>null,1,<any>null,1,1,1]},{"source":{"roles":{"Values":true},"type":{"underlyingType":260,"category":<any>null},"displayName":"Count of doc_id","queryName":"CountNonNull(Attributes.doc_id)","expr":{"_kind":4,"arg":{"_kind":2,"source":{"_kind":0,"entity":"Attributes","variable":"a"},"ref":"doc_id"},"func":5}},"values":[<any>null,<any>null,<any>null,5,2,1,<any>null,1,<any>null,<any>null]},{"source":{"roles":{"Values":true},"type":{"underlyingType":260,"category":<any>null},"displayName":"Count of doc_id","queryName":"CountNonNull(Attributes.doc_id)","expr":{"_kind":4,"arg":{"_kind":2,"source":{"_kind":0,"entity":"Attributes","variable":"a"},"ref":"doc_id"},"func":5}},"values":[<any>null,1,4,2,1,<any>null,<any>null,2,<any>null,<any>null]},{"source":{"roles":{"Values":true},"type":{"underlyingType":260,"category":<any>null},"displayName":"Count of doc_id","queryName":"CountNonNull(Attributes.doc_id)","expr":{"_kind":4,"arg":{"_kind":2,"source":{"_kind":0,"entity":"Attributes","variable":"a"},"ref":"doc_id"},"func":5}},"values":[<any>null,<any>null,<any>null,<any>null,<any>null,<any>null,<any>null,<any>null,<any>null,<any>null]}]}}]}; // tslint:disable-line
 
 
+import * as moment from "moment";
 import * as _ from "lodash";
 export default function dataWithBucketsAndSettings() {
     "use strict";
@@ -41,7 +42,6 @@ export default function dataWithBucketsAndSettings() {
             return v;
         });
     };
-    const tzOffset = new Date().getTimezoneOffset() * 60 * 1000;
 
     // We use valueSegments.reverse() because we set the "Reverse Bars" setting to true
     // Colors are from the
@@ -64,7 +64,7 @@ export default function dataWithBucketsAndSettings() {
             },
         },
         expected: [{
-            date: new Date(Date.parse("2015-02-01T09:12:39.000Z") + tzOffset),
+            date: moment("2015-02-01T09:12:39.000").toDate(),
             value: 2,
             valueSegments: [
                 { color: "#082cbd", value: 50 },
@@ -72,12 +72,12 @@ export default function dataWithBucketsAndSettings() {
             ].reverse(),
         },
         {
-            date: new Date(Date.parse("2015-02-01T09:50:34.000Z") + tzOffset),
+            date: moment("2015-02-01T09:50:34.000").toDate(),
             value: 1,
             valueSegments: [{ color: "#0026c1", value: 100 }].reverse(),
         },
         {
-            date: new Date(Date.parse("2015-02-01T09:53:10.000Z") + tzOffset),
+            date: moment("2015-02-01T09:53:10.000").toDate(),
             value: 19,
             valueSegments: [
                 { color: "#0014d0", value: 21.05 },
@@ -92,7 +92,7 @@ export default function dataWithBucketsAndSettings() {
             ].reverse(),
         },
         {
-            date: new Date(Date.parse("2015-02-01T10:20:44.000Z") + tzOffset),
+            date: moment("2015-02-01T10:20:44.000").toDate(),
             value: 18,
             valueSegments: [
                 { color: "#0014d0", value: 11.11 },
@@ -106,7 +106,7 @@ export default function dataWithBucketsAndSettings() {
             ].reverse(),
         },
         {
-            date: new Date(Date.parse("2015-02-01T10:51:02.000Z") + tzOffset),
+            date: moment("2015-02-01T10:51:02.000").toDate(),
             value: 11,
             valueSegments: [
                 { color: "#082cbd", value: 9.09 },
@@ -120,7 +120,7 @@ export default function dataWithBucketsAndSettings() {
             ].reverse(),
         },
         {
-            date: new Date(Date.parse("2015-02-01T11:41:19.000Z") + tzOffset),
+            date: moment("2015-02-01T11:41:19.000").toDate(),
             value: 13,
             valueSegments: [
                 { color: "#0014d0", value: 7.69 },
@@ -134,12 +134,12 @@ export default function dataWithBucketsAndSettings() {
             ].reverse(),
         },
         {
-            date: new Date(Date.parse("2015-02-01T12:08:24.000Z") + tzOffset),
+            date: moment("2015-02-01T12:08:24.000").toDate(),
             value: 1,
             valueSegments: [{ color: "#0014d0", value: 100 }].reverse(),
         },
         {
-            date: new Date(Date.parse("2015-02-01T12:16:45.000Z") + tzOffset),
+            date: moment("2015-02-01T12:16:45.000").toDate(),
             value: 6,
             valueSegments: [
                 { color: "#0e2ebb", value: 16.67 },
@@ -150,7 +150,7 @@ export default function dataWithBucketsAndSettings() {
             ].reverse(),
         },
         {
-            date: new Date(Date.parse("2015-02-01T12:26:17.000Z") + tzOffset),
+            date: moment("2015-02-01T12:26:17.000").toDate(),
             value: 7,
             valueSegments: [
                 { color: "#0014d0", value: 14.29 },
@@ -162,7 +162,7 @@ export default function dataWithBucketsAndSettings() {
             ].reverse(),
         },
         {
-            date: new Date(Date.parse("2015-02-01T12:32:56.000Z") + tzOffset),
+            date: moment("2015-02-01T12:32:56.000").toDate(),
             value: 4,
             valueSegments: [
                 { color: "#0014d0", value: 25 },
