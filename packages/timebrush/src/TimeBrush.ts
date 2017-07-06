@@ -294,8 +294,8 @@ export class TimeBrush {
         this.context = this.svg.append("g")
             .attr("class", "context");
 
-        this.legend = this.context.append("g")
-            .attr("class","legend")
+        this.legend = this.svg.append("g")
+            .attr("class","legend");
 
         this.xAxis = this.context.append("g")
             .attr("class", "x axis");
