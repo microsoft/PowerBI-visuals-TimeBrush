@@ -23,7 +23,7 @@
  */
 
 import EventEmitter from "../base/EventEmitter";
-import { TimeBrushDataItem, AxisPosition } from "./models";
+import { TimeBrushDataItem, AxisPosition, LegendItem } from "./models";
 
 /* tslint:disable */
 const $ = require("jquery");
@@ -63,6 +63,7 @@ export class TimeBrush {
     private bars: d3.Selection<any>;
     private _barWidth = 2;
     private _yAxisPosition = AxisPosition.Left;
+    private _legendItems: LegendItem[];
 
 
     /**
@@ -102,6 +103,20 @@ export class TimeBrush {
         this.y.domain([0, d3.max(this._data.map((d) => +d.value))]);
         this.renderElements();
     }
+
+    /**
+     * Gets the array of legend items
+     */
+    public get legendItems(){
+        return this._legendItems;
+    }
+
+    /**
+     * Sets the array of lenged items
+     */
+     public set legendItems(lengedItems: LegendItem[]){
+         this._legendItems = lengedItems;
+     }
 
     /**
      * Gets an event emitter by which events can be listened to
@@ -444,51 +459,50 @@ export class TimeBrush {
      * Renders the legend to svg
      */
     private renderLegend() {
-        
-        // not sure what kind of data i'll be getting yet, so we are faking it all to render something.
-        var maxLength = -1;
-
         // clear the previous legend
         this.legend.selectAll('.legendItem').remove()
 
-        // create a g element for each legend item
-        var legendElements = this.legend.selectAll('.legendItem')
-            .data(data)
-            .enter().append('g')
-            .attr("class", "legendItem")
+        // not sure what kind of data i'll be getting yet, so we are faking it all to render something.
+        if (this._data && this._legendItems) {
+            const maxLength = -1;
+
+            
+            // create a g element for each legend item
+            const legendElements = this.legend.selectAll('.legendItem')
+                .data(this._legendItems)
+                .enter().append('g')
+                .attr("class", "legendItem")
+
+            // draw a circle with a color for each lengend item
+            legendElements.append('circle')
+                .attr("cx", 5)
+                .attr("cy", 5)
+                .attr("r", 5)
+                .style("fill", function (d, i) {
+                    return d.color // not working, but it doesn't matter as we need to replace this.
+                })
+
+                  // add the text for each item
+            legendElements.append('text')
+                .attr("x", 20)
+                .attr("y", 11)
+                .text(function (d, i) {
+                    return (maxLength > 0) ? d.name.slice(0,maxLength) : d.name
+                })
+                .style("font-size", 15)   
         
-        // draw a circle with a color for each lengend item
-        legendElements.append('circle')
-            .attr("cx", 5)
-            .attr("cy", 5)
-            .attr("r", 5)
-            .style("fill", function (d, i) {
-                return d3.scale.category10()[i % 10] // not working, but it doesn't matter as we need to replace this.
-            })    
+            // add a transform for each item to spread them out horizontally based on the width of each item
+            let xoffset = 0;
+            const padding = 10;
+            legendElements
+                .attr("transform", function (d, i) {
+                    var translate = (i == 0) ?  "translate(0,0)" : "translate(" + (xoffset) + ",0)";
+                    xoffset +=  this.getBBox().width + padding;
+                    return translate;
+                })
+          
 
-        // add the text for each item
-        legendElements.append('text')
-            .attr("x", 20)
-            .attr("y", 11)
-            .text(function (d, i) {
-                return (maxLength > 0) ? d.slice(0,maxLength) : d
-            })
-            .attr("title",function(d) {return d})
-            .attr("class", "textselected")
-            .style("text-anchor", "start")
-            .style("font-size", 15)         
-
-
-        // add a transform for each item to spread them out horizontally based on the width of each item
-        var xoffset = 0;
-        var padding = 10;
-        legendElements
-            .attr("transform", function (d, i) {
-                var translate = (i == 0) ?  "translate(0,0)" : "translate(" + (xoffset) + ",0)";
-                xoffset +=  this.getBBox().width + padding;
-                return translate;
-            })
-      
+        }
     }
 
     /**

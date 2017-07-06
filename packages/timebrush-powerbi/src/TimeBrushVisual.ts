@@ -247,6 +247,9 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
                 this.timeColumn = dataViewCategorical.categories[0];
             }
             this.timeBrush.data = data;
+
+            // legend
+            this.timeBrush.legendItems =  state.seriesColors
         }
     }
 
