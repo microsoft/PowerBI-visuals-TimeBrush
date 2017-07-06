@@ -51,6 +51,7 @@ export class TimeBrush {
     private clip: d3.Selection<any>;
     private brushGrip: d3.Selection<any>;
     private context: d3.Selection<any>;
+    private legend: d3.Selection<any>;
     private brushEle: d3.Selection<any>;
     private xAxis: d3.Selection<any>;
     private yAxis: d3.Selection<any>;
@@ -278,6 +279,9 @@ export class TimeBrush {
         this.context = this.svg.append("g")
             .attr("class", "context");
 
+        this.legend = this.context.append("g")
+            .attr("class","legend")
+
         this.xAxis = this.context.append("g")
             .attr("class", "x axis");
 
@@ -314,6 +318,7 @@ export class TimeBrush {
             this.undoPBIScale(width, height, margin);
             this.renderXAxis(height);
             this.renderBrush(height);
+            this.renderLegend();
         };
 
         this.renderYAxis(margin);
@@ -433,6 +438,57 @@ export class TimeBrush {
             .attr("width", 6)
             .attr("fill", "lightgray")
             .attr("height", 30);
+    }
+
+    /**
+     * Renders the legend to svg
+     */
+    private renderLegend() {
+        
+        // not sure what kind of data i'll be getting yet, so we are faking it all to render something.
+        var maxLength = -1;
+
+        // clear the previous legend
+        this.legend.selectAll('.legendItem').remove()
+
+        // create a g element for each legend item
+        var legendElements = this.legend.selectAll('.legendItem')
+            .data(data)
+            .enter().append('g')
+            .attr("class", "legendItem")
+        
+        // draw a circle with a color for each lengend item
+        legendElements.append('circle')
+            .attr("cx", 5)
+            .attr("cy", 5)
+            .attr("r", 5)
+            .style("fill", function (d, i) {
+                return d3.scale.category10()[i % 10] // not working, but it doesn't matter as we need to replace this.
+            })    
+
+        // add the text for each item
+        legendElements.append('text')
+            .attr("x", 20)
+            .attr("y", 11)
+            .text(function (d, i) {
+                return (maxLength > 0) ? d.slice(0,maxLength) : d
+            })
+            .attr("title",function(d) {return d})
+            .attr("class", "textselected")
+            .style("text-anchor", "start")
+            .style("font-size", 15)         
+
+
+        // add a transform for each item to spread them out horizontally based on the width of each item
+        var xoffset = 0;
+        var padding = 10;
+        legendElements
+            .attr("transform", function (d, i) {
+                var translate = (i == 0) ?  "translate(0,0)" : "translate(" + (xoffset) + ",0)";
+                xoffset +=  this.getBBox().width + padding;
+                return translate;
+            })
+      
     }
 
     /**
