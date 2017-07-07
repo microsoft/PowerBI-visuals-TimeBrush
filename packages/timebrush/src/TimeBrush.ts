@@ -478,7 +478,7 @@ export class TimeBrush {
         this.legend.selectAll('.legendItem').remove()
 
         // not sure what kind of data i'll be getting yet, so we are faking it all to render something.
-        if (this._data && this._legendItems) {
+        if (this._legendItems) {
             const maxLength = 25;
             
             // create a g element for each legend item

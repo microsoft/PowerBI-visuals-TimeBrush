@@ -125,7 +125,7 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
 
 
     /**
-     * Show / Hide the legend
+     * Legend Size
      */
      @num({
         category: "Legend",
