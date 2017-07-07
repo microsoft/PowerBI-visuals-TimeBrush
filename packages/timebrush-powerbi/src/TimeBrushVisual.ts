@@ -117,9 +117,10 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
         let dataView = this.dataView = options.dataViews && options.dataViews[0];
         if (updateType !== UpdateType.Resize) {
             const newState = this._internalState.receiveFromPBI(dataView);
-
+                      
             if (dataView) {
                 const hasDataChanged = !!(updateType & UpdateType.Data);
+                this.loadLegendFromPowerBI(newState);
                 this.loadDataFromPowerBI(dataView, hasDataChanged, newState);
                 this.loadSelectedRangeFromPowerBI(dataView, hasDataChanged, newState);
 
@@ -247,9 +248,17 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
                 this.timeColumn = dataViewCategorical.categories[0];
             }
             this.timeBrush.data = data;
+        }
+    }
 
-            // legend
-            this.timeBrush.legendItems =  state.seriesColors
+    /**
+     * Loads the legend
+     */
+    private loadLegendFromPowerBI(state: TimeBrushState) {
+        if (state.showLegend) {
+            this.timeBrush.legendItems =  state.seriesColors;
+        } else{
+            this.timeBrush.legendItems =  [];
         }
     }
 
