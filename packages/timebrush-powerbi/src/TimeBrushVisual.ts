@@ -117,7 +117,7 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
         let dataView = this.dataView = options.dataViews && options.dataViews[0];
         if (updateType !== UpdateType.Resize) {
             const newState = this._internalState.receiveFromPBI(dataView);
-                      
+
             if (dataView) {
                 const hasDataChanged = !!(updateType & UpdateType.Data);
                 this.loadLegendFromPowerBI(newState);
@@ -258,7 +258,7 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
         this.timeBrush.legendFontSize = state.legendFontSize;
         if (state.showLegend) {
             this.timeBrush.legendItems =  state.seriesColors;
-        } else{
+        } else {
             this.timeBrush.legendItems =  [];
         }
     }
