@@ -64,6 +64,7 @@ export class TimeBrush {
     private _barWidth = 2;
     private _yAxisPosition = AxisPosition.Left;
     private _legendItems: LegendItem[];
+    private _legendFontSize: number;
 
 
     /**
@@ -116,6 +117,20 @@ export class TimeBrush {
      */
      public set legendItems(lengedItems: LegendItem[]){
          this._legendItems = lengedItems;
+     }
+
+     /**
+      * Get the legend font size
+      */
+     public get legendFontSize(){
+         return this._legendFontSize;
+     }
+
+     /**
+      * Sets the legend font size.
+      */
+     public set legendFontSize(size: number){
+         this._legendFontSize = size;
      }
 
     /**
@@ -464,8 +479,7 @@ export class TimeBrush {
 
         // not sure what kind of data i'll be getting yet, so we are faking it all to render something.
         if (this._data && this._legendItems) {
-            const maxLength = -1;
-
+            const maxLength = 25;
             
             // create a g element for each legend item
             const legendElements = this.legend.selectAll('.legendItem')
@@ -475,21 +489,21 @@ export class TimeBrush {
 
             // draw a circle with a color for each lengend item
             legendElements.append('circle')
-                .attr("cx", 5)
-                .attr("cy", 5)
-                .attr("r", 5)
+                .attr("cx", this._legendFontSize / 3 )
+                .attr("cy", 0.6 * this._legendFontSize)
+                .attr("r", this._legendFontSize / 3 )
                 .style("fill", function (d, i) {
                     return d.color // not working, but it doesn't matter as we need to replace this.
                 })
 
                   // add the text for each item
             legendElements.append('text')
-                .attr("x", 20)
-                .attr("y", 11)
+                .attr("x", this._legendFontSize + 2)
+                .attr("y", this._legendFontSize )
                 .text(function (d, i) {
-                    return (maxLength > 0) ? d.name.slice(0,maxLength) : d.name
+                    return (maxLength > 0 && d.name.length > maxLength) ? d.name.slice(0,maxLength)+"..." : d.name
                 })
-                .style("font-size", 15)   
+                .style("font-size", this._legendFontSize)   
         
             // add a transform for each item to spread them out horizontally based on the width of each item
             let xoffset = 0;

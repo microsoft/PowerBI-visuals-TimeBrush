@@ -123,6 +123,19 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
     })
     public showLegend: boolean;
 
+
+    /**
+     * Show / Hide the legend
+     */
+     @num({
+        category: "Legend",
+        displayName: "Font Size",
+        description: "Font Size",
+        defaultValue: 10,
+    })
+    public legendFontSize: number;
+
+
     /**
      * The size of the bars
      */
