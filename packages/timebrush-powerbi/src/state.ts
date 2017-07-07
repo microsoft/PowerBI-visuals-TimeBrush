@@ -132,6 +132,8 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
         displayName: "Font Size",
         description: "Font Size",
         defaultValue: 10,
+        min: 5,
+        max: 50,
     })
     public legendFontSize: number;
 
