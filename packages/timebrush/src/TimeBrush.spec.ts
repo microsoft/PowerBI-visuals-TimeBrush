@@ -349,30 +349,30 @@ describe("TimeBrush", () => {
         });
     });
 
-    describe("legend",() => {
+    describe("legend", () => {
         it("should create legend element", () => {
             const { instance, element } = createInstance();
             const svgEle = element.find("svg");
-            const legendElement = svgEle.find(".legend")
+            const legendElement = svgEle.find(".legend");
 
             expect(legendElement.length).to.equal(1);
-        })
+        });
 
-        it("should draw legend items when provided", () =>{
+        it("should draw legend items when provided", () => {
              const { instance, element } = createInstance();
-             const legendElement = element.find("svg").find(".legend")
+             const legendElement = element.find("svg").find(".legend");
 
              let legendData = [
-                 {'name': 'foo','color':'#000000'},
-                 {'name': 'bar','color':'#FFFFFF'},
+                 {"name": "foo", "color": "#000000"},
+                 {"name": "bar", "color": "#FFFFFF"},
              ];
 
              instance.legendItems = legendData;
              instance.legendFontSize = 10;
              instance.dimensions = { width: 500, height: 200 }; // change dimensions to trigger render
-             
-             let legendItems = legendElement.find('.legendItem')
-             expect(legendItems.length).to.equal(2);      
-        })
-    })
+
+             let legendItems = legendElement.find(".legendItem");
+             expect(legendItems.length).to.equal(2);
+        });
+    });
 });
