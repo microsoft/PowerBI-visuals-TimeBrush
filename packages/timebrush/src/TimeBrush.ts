@@ -478,7 +478,7 @@ export class TimeBrush {
         this.legend.selectAll('.legendItem').remove()
 
         // not sure what kind of data i'll be getting yet, so we are faking it all to render something.
-        if (this._legendItems) {
+        if (this._legendItems && this._legendItems.length > 0) {
             const maxLength = 25;
             
             // create a g element for each legend item
@@ -501,7 +501,7 @@ export class TimeBrush {
                 .attr("x", this._legendFontSize + 2)
                 .attr("y", this._legendFontSize )
                 .text(function (d, i) {
-                    return (maxLength > 0 && d.name.length > maxLength) ? d.name.slice(0,maxLength)+"..." : d.name
+                    return (maxLength > 0 && d.name && d.name.length > maxLength) ? d.name.slice(0,maxLength)+"..." : d.name
                 })
                 .style("font-size", this._legendFontSize)   
         
