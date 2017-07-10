@@ -72,6 +72,38 @@ describe("TimeBrush", () => {
         }],
     }];
 
+    const SIMPLE_FAKE_DATA_3 = [{
+        date: new Date(2015, 1, 1),
+        value: -20,
+        valueSegments: [{
+            value: 100,
+            color: "red",
+        }],
+    }, {
+        date: new Date(2016, 1, 1),
+        value: -60,
+        valueSegments: [{
+            value: 100,
+            color: "red",
+        }],
+    }];
+
+    const SIMPLE_FAKE_DATA_4 = [{
+        date: new Date(2015, 1, 1),
+        value: -20,
+        valueSegments: [{
+            value: 100,
+            color: "red",
+        }],
+    }, {
+        date: new Date(2016, 1, 1),
+        value: 60,
+        valueSegments: [{
+            value: 100,
+            color: "red",
+        }],
+    }];
+
     const createInstance = () => {
         const element = $("<div>");
         const instance = new TimeBrush(element);
@@ -142,6 +174,34 @@ describe("TimeBrush", () => {
             expect(d3.select(bars[0]).data()[0].date).to.be.deep.equal(SIMPLE_FAKE_DATA[0].date);
             expect(d3.select(bars[1]).data()[0].date).to.be.deep.equal(SIMPLE_FAKE_DATA[1].date);
         });
+        it("should have y-scale starting at 0 if all values are positive",() => {
+            const { element, instance } = createInstance();
+            instance.data = SIMPLE_FAKE_DATA;
+            instance.dimensions = { width: 500, height: 200 };
+
+            let domain = instance['y'].domain();
+            expect(domain[0]).to.equal(0);
+            expect(domain[1]).to.equal(60);
+        });
+        it("should have y-scale ending at 0 if all values are negative",() => {
+            const { element, instance } = createInstance();
+            instance.data = SIMPLE_FAKE_DATA_3;
+            instance.dimensions = { width: 500, height: 200 };
+
+            let domain = instance['y'].domain();
+            expect(domain[0]).to.equal(-60);
+            expect(domain[1]).to.equal(0);
+        });
+        it("should have y-scale for full range if both negative and positive values are present", () => {
+            const { element, instance } = createInstance();
+            instance.data = SIMPLE_FAKE_DATA_4;
+            instance.dimensions = { width: 500, height: 200 };
+
+            let domain = instance['y'].domain();
+            expect(domain[0]).to.equal(-20);
+            expect(domain[1]).to.equal(60);
+        })
+
     });
 
     describe("showYAxis", () => {

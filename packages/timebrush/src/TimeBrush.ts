@@ -99,8 +99,9 @@ export class TimeBrush {
         this.element.toggle(this._data.length > 0);
 
         this.x.domain(d3.extent(this._data.map((d) => d.date)));
-        let yfloor = d3.min( [0,d3.min(this._data.map((d) => +d.value))]); 
-        this.y.domain([yfloor , d3.max(this._data.map((d) => +d.value))]);
+        let ymin = d3.min( [0, d3.min(this._data.map((d) => +d.value))]); 
+        let ymax = d3.max([0, d3.max(this._data.map((d) => +d.value))]);
+        this.y.domain([ymin , ymax]);
         this.renderElements();
     }
 
