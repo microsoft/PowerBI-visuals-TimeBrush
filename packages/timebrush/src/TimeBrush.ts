@@ -53,6 +53,7 @@ export class TimeBrush {
     private context: d3.Selection<any>;
     private brushEle: d3.Selection<any>;
     private xAxis: d3.Selection<any>;
+    private yOrigin: d3.Selection<any>;
     private yAxis: d3.Selection<any>;
     private _dimensions: { width: number; height: number; } = { width: 500, height: 500 };
     private _eventEmitter = new EventEmitter();
@@ -98,7 +99,8 @@ export class TimeBrush {
         this.element.toggle(this._data.length > 0);
 
         this.x.domain(d3.extent(this._data.map((d) => d.date)));
-        this.y.domain([0, d3.max(this._data.map((d) => +d.value))]);
+        let yfloor = d3.min( [0,d3.min(this._data.map((d) => +d.value))]); 
+        this.y.domain([yfloor , d3.max(this._data.map((d) => +d.value))]);
         this.renderElements();
     }
 
@@ -278,14 +280,17 @@ export class TimeBrush {
         this.context = this.svg.append("g")
             .attr("class", "context");
 
+        this.bars = this.context.append("g")
+            .attr("class", "bars");
+
         this.xAxis = this.context.append("g")
             .attr("class", "x axis");
 
         this.yAxis = this.context.append("g")
             .attr("class", "y axis");
 
-        this.bars = this.context.append("g")
-            .attr("class", "bars");
+        this.yOrigin = this.context.append("line")
+            .attr("class","y-origin-line")
 
         let brushed = _.debounce(() => {
             const dateRange: any[] = this.brush.empty() ? [] : this.brush.extent();
@@ -342,13 +347,17 @@ export class TimeBrush {
                 .attr("transform", (d, i) => {
                     let rectHeight = this.y(0) - this.y(d.value);
                     let x = this.x(d.date) || 0;
-                    return `translate(${(x - (barWidth / 2))},${height - rectHeight})`;
+                    if (d.value >= 0){
+                        return `translate(${(x - (barWidth / 2))},${this.y(0) - rectHeight})`;
+                    } else {
+                        return `translate(${(x - (barWidth / 2))},${this.y(0)})`;
+                    }
+                    
                 })
                 .attr("fill", (d, i) => {
                     return `url(${this.element[0].ownerDocument.URL || ""}#rect_gradient_${i})`;
                 })
                 .attr("width", barWidth)
-                .attr("height", (d) => Math.max(0, this.y(0) - this.y(d.value)));
 
             tmp.exit().remove();
         }
@@ -513,8 +522,15 @@ export class TimeBrush {
      */
     private renderXAxis(height: number) {
         this.xAxis
-            .attr("transform", "translate(0," + height + ")")
+            .attr("transform", () => `translate(0,${height})`)
             .call(d3.svg.axis().scale(this.x).orient("bottom").ticks(this.dimensions.width / TICK_WIDTH));
+        
+
+        this.yOrigin
+            .attr({ 
+                x1: 0 - (0.5 *this._barWidth), y1: this.y(0),
+                x2: this.dimensions.width, y2: this.y(0),
+            });
 
         this.xAxis
             .selectAll(".tick")
