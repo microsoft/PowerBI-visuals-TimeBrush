@@ -358,6 +358,7 @@ export class TimeBrush {
                     return `url(${this.element[0].ownerDocument.URL || ""}#rect_gradient_${i})`;
                 })
                 .attr("width", barWidth)
+                .attr("height", (d) => Math.abs(this.y(0) - this.y(d.value)));
 
             tmp.exit().remove();
         }
@@ -388,7 +389,7 @@ export class TimeBrush {
             const stops = gradients.selectAll("stop")
                 .data((d) => {
                     const stops: any[] = [];
-                    const segments = d.valueSegments;
+                    const segments = (d.value >=0) ? d.valueSegments : d.valueSegments.slice().reverse();
                     let offset = 0;
                     segments.forEach((n, i) => {
                         stops.push({
