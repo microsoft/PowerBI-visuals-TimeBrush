@@ -174,21 +174,21 @@ describe("TimeBrush", () => {
             expect(d3.select(bars[0]).data()[0].date).to.be.deep.equal(SIMPLE_FAKE_DATA[0].date);
             expect(d3.select(bars[1]).data()[0].date).to.be.deep.equal(SIMPLE_FAKE_DATA[1].date);
         });
-        it("should have y-scale starting at 0 if all values are positive",() => {
+        it("should have y-scale starting at 0 if all values are positive", () => {
             const { element, instance } = createInstance();
             instance.data = SIMPLE_FAKE_DATA;
             instance.dimensions = { width: 500, height: 200 };
 
-            let domain = instance['y'].domain();
+            let domain = instance["y"].domain();
             expect(domain[0]).to.equal(0);
             expect(domain[1]).to.equal(60);
         });
-        it("should have y-scale ending at 0 if all values are negative",() => {
+        it("should have y-scale ending at 0 if all values are negative", () => {
             const { element, instance } = createInstance();
             instance.data = SIMPLE_FAKE_DATA_3;
             instance.dimensions = { width: 500, height: 200 };
 
-            let domain = instance['y'].domain();
+            let domain = instance["y"].domain();
             expect(domain[0]).to.equal(-60);
             expect(domain[1]).to.equal(0);
         });
@@ -197,10 +197,10 @@ describe("TimeBrush", () => {
             instance.data = SIMPLE_FAKE_DATA_4;
             instance.dimensions = { width: 500, height: 200 };
 
-            let domain = instance['y'].domain();
+            let domain = instance["y"].domain();
             expect(domain[0]).to.equal(-20);
             expect(domain[1]).to.equal(60);
-        })
+        });
 
     });
 

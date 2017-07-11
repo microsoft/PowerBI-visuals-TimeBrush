@@ -102,7 +102,7 @@ export class TimeBrush {
         this.element.toggle(this._data.length > 0);
 
         this.x.domain(d3.extent(this._data.map((d) => d.date)));
-        let ymin = d3.min( [0, d3.min(this._data.map((d) => +d.value))]); 
+        let ymin = d3.min( [0, d3.min(this._data.map((d) => +d.value))]);
         let ymax = d3.max([0, d3.max(this._data.map((d) => +d.value))]);
         this.y.domain([ymin , ymax]);
         this.renderElements();
@@ -314,7 +314,7 @@ export class TimeBrush {
 
         this.legend = this.svg.append("g")
             .attr("class", "legend");
-       
+
         this.yAxis = this.context.append("g")
             .attr("class", "y axis");
 
@@ -325,7 +325,7 @@ export class TimeBrush {
             .attr("class", "x axis");
 
         this.yOrigin = this.context.append("line")
-            .attr("class","y-origin-line")
+            .attr("class", "y-origin-line");
 
         let brushed = _.debounce(() => {
             const dateRange: any[] = this.brush.empty() ? [] : this.brush.extent();
@@ -347,18 +347,18 @@ export class TimeBrush {
             // Important that these two occur here, cause the margin gets tweaked by renderYAxis
             let width = this._dimensions.width - margin.left - margin.right;
             let height = this._dimensions.height - margin.top - margin.bottom;
-            
+
             // adjust the x range to account for y axis labels
             let xmin = (this.showYAxis && this.yAxisPosition === AxisPosition.Left) ? margin.left : 0;
-            let xmax : any = (this.showYAxis && this.yAxisPosition === AxisPosition.Right) ? width - margin.right : width;
-            this.x.range([xmin,xmax]);
+            let xmax: any = (this.showYAxis && this.yAxisPosition === AxisPosition.Right) ? width - margin.right : width;
+            this.x.range([xmin, xmax]);
 
 
             this.renderValueBars(height);
             this.renderValueBarGradients();
             this.undoPBIScale(width, height, margin);
             this.renderXAxis(height);
-            this.renderYOrigin(xmin,xmax);
+            this.renderYOrigin(xmin, xmax);
             this.renderBrush(height);
             this.renderLegend();
         };
@@ -389,12 +389,12 @@ export class TimeBrush {
                 .attr("transform", (d, i) => {
                     let rectHeight = this.y(0) - this.y(d.value);
                     let x = this.x(d.date) || 0;
-                    if (d.value >= 0){
+                    if (d.value >= 0) {
                         return `translate(${(x - (barWidth / 2))},${this.y(0) - rectHeight})`;
                     } else {
                         return `translate(${(x - (barWidth / 2))},${this.y(0)})`;
                     }
-                    
+
                 })
                 .attr("fill", (d, i) => {
                     return `url(${this.element[0].ownerDocument.URL || ""}#rect_gradient_${i})`;
@@ -431,7 +431,7 @@ export class TimeBrush {
             const stops = gradients.selectAll("stop")
                 .data((d) => {
                     const stops: any[] = [];
-                    const segments = (d.value >=0) ? d.valueSegments : d.valueSegments.slice().reverse();
+                    const segments = (d.value >= 0) ? d.valueSegments : d.valueSegments.slice().reverse();
                     let offset = 0;
                     segments.forEach((n, i) => {
                         stops.push({
@@ -612,9 +612,9 @@ export class TimeBrush {
      */
     private renderYOrigin(xmin: any, xmax: any) {
         this.yOrigin
-            .attr({ 
-                x1: xmin - (0.5 *this._barWidth), y1: this.y(0),
-                x2: xmax + (0.5 *this._barWidth), y2: this.y(0),
+            .attr({
+                x1: xmin - (0.5 * this._barWidth), y1: this.y(0),
+                x2: xmax + (0.5 * this._barWidth), y2: this.y(0),
             });
     }
 
@@ -626,7 +626,7 @@ export class TimeBrush {
         this.xAxis
             .attr("transform", () => `translate(0,${height})`)
             .call(d3.svg.axis().scale(this.x).orient("bottom").ticks(this.dimensions.width / TICK_WIDTH));
-        
+
 
         this.xAxis
             .selectAll(".tick")
