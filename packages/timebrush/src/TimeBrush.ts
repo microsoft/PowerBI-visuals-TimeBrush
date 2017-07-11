@@ -281,14 +281,14 @@ export class TimeBrush {
         this.context = this.svg.append("g")
             .attr("class", "context");
 
+        this.yAxis = this.context.append("g")
+            .attr("class", "y axis");
+
         this.bars = this.context.append("g")
             .attr("class", "bars");
 
         this.xAxis = this.context.append("g")
             .attr("class", "x axis");
-
-        this.yAxis = this.context.append("g")
-            .attr("class", "y axis");
 
         this.yOrigin = this.context.append("line")
             .attr("class","y-origin-line")
@@ -313,12 +313,18 @@ export class TimeBrush {
             // Important that these two occur here, cause the margin gets tweaked by renderYAxis
             let width = this._dimensions.width - margin.left - margin.right;
             let height = this._dimensions.height - margin.top - margin.bottom;
-            this.x.range([0, <any>width]);
+            
+            // adjust the x range to account for y axis labels
+            let xmin = (this.showYAxis && this.yAxisPosition === AxisPosition.Left) ? margin.left : 0;
+            let xmax : any = (this.showYAxis && this.yAxisPosition === AxisPosition.Right) ? width - margin.right : width;
+            this.x.range([xmin,xmax]);
+
 
             this.renderValueBars(height);
             this.renderValueBarGradients();
             this.undoPBIScale(width, height, margin);
             this.renderXAxis(height);
+            this.renderYOrigin(xmin,xmax);
             this.renderBrush(height);
         };
 
@@ -518,6 +524,19 @@ export class TimeBrush {
         }
     }
 
+
+    /**
+     * Renders a horizontal line at the 0 point on the y axis.
+     * @param margin The margins of the chart area
+     */
+    private renderYOrigin(xmin: any, xmax: any) {
+        this.yOrigin
+            .attr({ 
+                x1: xmin - (0.5 *this._barWidth), y1: this.y(0),
+                x2: xmax + (0.5 *this._barWidth), y2: this.y(0),
+            });
+    }
+
     /**
      * Renders the xAxis
      * @param height The height of the chart
@@ -527,12 +546,6 @@ export class TimeBrush {
             .attr("transform", () => `translate(0,${height})`)
             .call(d3.svg.axis().scale(this.x).orient("bottom").ticks(this.dimensions.width / TICK_WIDTH));
         
-
-        this.yOrigin
-            .attr({ 
-                x1: 0 - (0.5 *this._barWidth), y1: this.y(0),
-                x2: this.dimensions.width, y2: this.y(0),
-            });
 
         this.xAxis
             .selectAll(".tick")
