@@ -113,7 +113,7 @@ export class TimeBrush {
     }
 
     /**
-     * Sets the array of lenged items
+     * Sets the array of legend items
      */
      public set legendItems(lengedItems: LegendItem[]){
          this._legendItems = lengedItems;
@@ -477,7 +477,6 @@ export class TimeBrush {
         // clear the previous legend
         this.legend.selectAll(".legendItem").remove();
 
-        // not sure what kind of data i'll be getting yet, so we are faking it all to render something.
         if (this._legendItems && this._legendItems.length > 0) {
             const maxLength = 25;
 
@@ -492,9 +491,7 @@ export class TimeBrush {
                 .attr("cx", this._legendFontSize / 3 )
                 .attr("cy", 0.6 * this._legendFontSize)
                 .attr("r", this._legendFontSize / 3 )
-                .style("fill", function (d, i) {
-                    return d.color;
-                });
+                .style("fill", d => d.color);
 
                   // add the text for each item
             legendElements.append("text")

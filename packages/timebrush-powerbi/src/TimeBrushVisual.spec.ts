@@ -200,7 +200,7 @@ describe("TimeBrushVisual", () => {
                 });
 
                 it("should not load legend items by default", () => {
-                    const { instance, timeBrush, settings, expected } = createInstanceAndPerformComplexUpdate();
+                    const {  timeBrush, settings } = createInstanceAndPerformComplexUpdate();
                     expect(timeBrush.legendItems.length).to.be.equal(0);
                 });
 

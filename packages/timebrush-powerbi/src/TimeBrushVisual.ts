@@ -256,11 +256,7 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
      */
     private loadLegendFromPowerBI(state: TimeBrushState) {
         this.timeBrush.legendFontSize = state.legendFontSize;
-        if (state.showLegend) {
-            this.timeBrush.legendItems =  state.seriesColors;
-        } else {
-            this.timeBrush.legendItems =  [];
-        }
+        this.timeBrush.legendItems = state.showLegend ? state.seriesColors : [];
     }
 
     /**
