@@ -485,6 +485,17 @@ export class TimeBrush {
     }
 
     /**
+     * Returns the approximate height of the legend element
+     */
+    private legendHeight() {
+        let height = 0;
+        if (this._legendItems && this._legendItems.length > 0) {
+            height += this._legendFontSize;
+        }
+        return height;
+    }
+
+    /**
      * Renders the legend to svg
      */
     private renderLegend() {
@@ -542,14 +553,15 @@ export class TimeBrush {
         // Default to 1 if we have no data
         let scale = actualWidth > 0 && this.dimensions.width > 0 ? this.dimensions.width / actualWidth : 1;
 
-        // Add some padding for the y axis labels
-        margin.top = this.showYAxis ? 10 * scale : 0;
+        // Add some padding for the y axis labels and legend
+        const legendHeight = this.legendHeight();
+        margin.top = (this.showYAxis || legendHeight > 0) ? 10 * scale : 0;
 
         // Update the y axis scale
         let height = this._dimensions.height - margin.top - margin.bottom;
         const tickCount = Math.max(height / 50, 1);
         this.y
-            .range([height, 0])
+            .range([height, 0 + legendHeight])
             .nice(tickCount);
 
         // hide/show the y axis
