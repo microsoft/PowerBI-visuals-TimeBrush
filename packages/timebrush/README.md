@@ -4,14 +4,16 @@
 
 Time Brush lets you filter a time-based dataset by directly dragging or brushing over a time period of interest. The initial display is a helpful overview that shows the frequency of items in each pre-defined time bucket (e.g., hours, days, years) as a vertical bar chart. Whenever you select a time period, any linked visuals are automatically filtered to display only those records with time attributes in the selected period.
 
-![TimeBrush](/assets/screenshot.png?raw=true)
-
 > This visual is currently in beta testing and is undergoing active development.
 
-## Usage
+## Getting Started
+* Fork this repo
 * Install [node.js 6+](https://nodejs.org)
-* Install [yarn](https://yarnpkg.com/lang/en/docs/install)
-* Run `yarn` on the project directory, which will install all the dependencies
-* Run `yarn test` which will lint, test, and compile the `timebrush`, `timebrush-react` and `timebrush-powerbi` packages.
-    * Compiling `timebrush-powerbi` will also create a `.pbiviz` file in the `packages/timebrush/powerbi/dist/powerbi` directory, which can be imported directly in [Power BI](https://app.powerbi.com/)
-* Alternatively run `yarn test:powerbi`, which will do the same as `yarn test` but will exclude `timebrush-react`.
+* Run `npm install` on the project directory
+* The `src` directory contains all of the visual's code.
+
+## Building
+* Running `npm run build` will do the following:
+  * Compiles the `src` directory.
+  * Creates a `.pbiviz` file in the `dist\powerbi` directory.
+    * Go to [Power BI](https://app.powerbi.com/), and to import your new visual.
