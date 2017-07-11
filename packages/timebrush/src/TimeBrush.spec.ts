@@ -175,7 +175,7 @@ describe("TimeBrush", () => {
             expect(d3.select(bars[1]).data()[0].date).to.be.deep.equal(SIMPLE_FAKE_DATA[1].date);
         });
         it("should have y-scale starting at 0 if all values are positive", () => {
-            const { element, instance } = createInstance();
+            const { instance } = createInstance();
             instance.data = SIMPLE_FAKE_DATA;
             instance.dimensions = { width: 500, height: 200 };
 
@@ -184,7 +184,7 @@ describe("TimeBrush", () => {
             expect(domain[1]).to.equal(60);
         });
         it("should have y-scale ending at 0 if all values are negative", () => {
-            const { element, instance } = createInstance();
+            const { instance } = createInstance();
             instance.data = SIMPLE_FAKE_DATA_3;
             instance.dimensions = { width: 500, height: 200 };
 
@@ -193,7 +193,7 @@ describe("TimeBrush", () => {
             expect(domain[1]).to.equal(0);
         });
         it("should have y-scale for full range if both negative and positive values are present", () => {
-            const { element, instance } = createInstance();
+            const { instance } = createInstance();
             instance.data = SIMPLE_FAKE_DATA_4;
             instance.dimensions = { width: 500, height: 200 };
 

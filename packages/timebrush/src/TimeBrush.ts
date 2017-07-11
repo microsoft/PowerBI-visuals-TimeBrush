@@ -389,11 +389,8 @@ export class TimeBrush {
                 .attr("transform", (d, i) => {
                     let rectHeight = this.y(0) - this.y(d.value);
                     let x = this.x(d.date) || 0;
-                    if (d.value >= 0) {
-                        return `translate(${(x - (barWidth / 2))},${this.y(0) - rectHeight})`;
-                    } else {
-                        return `translate(${(x - (barWidth / 2))},${this.y(0)})`;
-                    }
+                    let yPos = d.value >= 0 ? this.y(0) - rectHeight : this.y(0);
+                    return `translate(${(x - (barWidth / 2))},${yPos})`;
 
                 })
                 .attr("fill", (d, i) => {
@@ -624,7 +621,7 @@ export class TimeBrush {
      */
     private renderXAxis(height: number) {
         this.xAxis
-            .attr("transform", () => `translate(0,${height})`)
+            .attr("transform", `translate(0,${height})`)
             .call(d3.svg.axis().scale(this.x).orient("bottom").ticks(this.dimensions.width / TICK_WIDTH));
 
 
