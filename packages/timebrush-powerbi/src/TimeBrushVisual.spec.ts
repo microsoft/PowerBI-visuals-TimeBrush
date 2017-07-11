@@ -195,12 +195,12 @@ describe("TimeBrushVisual", () => {
                 });
 
                 it("should load font size into legend propertly", () => {
-                    const { instance, timeBrush, settings, expected } = createInstanceAndPerformComplexUpdate();
+                    const { timeBrush, settings } = createInstanceAndPerformComplexUpdate();
                     expect(timeBrush.legendFontSize).to.be.equal(settings.legendFontSize);
                 });
 
                 it("should not load legend items by default", () => {
-                    const {  timeBrush, settings } = createInstanceAndPerformComplexUpdate();
+                    const {  timeBrush } = createInstanceAndPerformComplexUpdate();
                     expect(timeBrush.legendItems.length).to.be.equal(0);
                 });
 
