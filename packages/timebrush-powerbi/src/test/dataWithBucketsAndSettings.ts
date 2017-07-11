@@ -53,6 +53,7 @@ export default function dataWithBucketsAndSettings() {
                 showReferenceLines: false,
                 yAxisPosition: 2,
             },
+            legendFontSize: 10,
             barWidth: 10,
             clearSelectionOnDataChange: false,
             reverseBars: true,

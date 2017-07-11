@@ -23,7 +23,7 @@
  */
 
 import EventEmitter from "../base/EventEmitter";
-import { TimeBrushDataItem, AxisPosition } from "./models";
+import { TimeBrushDataItem, AxisPosition, LegendItem } from "./models";
 
 /* tslint:disable */
 const $ = require("jquery");
@@ -51,6 +51,7 @@ export class TimeBrush {
     private clip: d3.Selection<any>;
     private brushGrip: d3.Selection<any>;
     private context: d3.Selection<any>;
+    private legend: d3.Selection<any>;
     private brushEle: d3.Selection<any>;
     private xAxis: d3.Selection<any>;
     private yAxis: d3.Selection<any>;
@@ -62,6 +63,8 @@ export class TimeBrush {
     private bars: d3.Selection<any>;
     private _barWidth = 2;
     private _yAxisPosition = AxisPosition.Left;
+    private _legendItems: LegendItem[];
+    private _legendFontSize: number;
 
 
     /**
@@ -101,6 +104,34 @@ export class TimeBrush {
         this.y.domain([0, d3.max(this._data.map((d) => +d.value))]);
         this.renderElements();
     }
+
+    /**
+     * Gets the array of legend items
+     */
+    public get legendItems(){
+        return this._legendItems;
+    }
+
+    /**
+     * Sets the array of legend items
+     */
+     public set legendItems(lengedItems: LegendItem[]){
+         this._legendItems = lengedItems;
+     }
+
+     /**
+      * Get the legend font size
+      */
+     public get legendFontSize(){
+         return this._legendFontSize;
+     }
+
+     /**
+      * Sets the legend font size.
+      */
+     public set legendFontSize(size: number){
+         this._legendFontSize = size;
+     }
 
     /**
      * Gets an event emitter by which events can be listened to
@@ -278,6 +309,9 @@ export class TimeBrush {
         this.context = this.svg.append("g")
             .attr("class", "context");
 
+        this.legend = this.svg.append("g")
+            .attr("class", "legend");
+
         this.xAxis = this.context.append("g")
             .attr("class", "x axis");
 
@@ -314,6 +348,7 @@ export class TimeBrush {
             this.undoPBIScale(width, height, margin);
             this.renderXAxis(height);
             this.renderBrush(height);
+            this.renderLegend();
         };
 
         this.renderYAxis(margin);
@@ -433,6 +468,52 @@ export class TimeBrush {
             .attr("width", 6)
             .attr("fill", "lightgray")
             .attr("height", 30);
+    }
+
+    /**
+     * Renders the legend to svg
+     */
+    private renderLegend() {
+        // clear the previous legend
+        this.legend.selectAll(".legendItem").remove();
+
+        if (this._legendItems && this._legendItems.length > 0) {
+            const maxLength = 25;
+
+            // create a g element for each legend item
+            const legendElements = this.legend.selectAll(".legendItem")
+                .data(this._legendItems)
+                .enter().append("g")
+                .attr("class", "legendItem");
+
+            // draw a circle with a color for each lengend item
+            legendElements.append("circle")
+                .attr("cx", this._legendFontSize / 3 )
+                .attr("cy", 0.6 * this._legendFontSize)
+                .attr("r", this._legendFontSize / 3 )
+                .style("fill", d => d.color);
+
+                  // add the text for each item
+            legendElements.append("text")
+                .attr("x", this._legendFontSize + 2)
+                .attr("y", this._legendFontSize )
+                .text(function (d, i) {
+                    return (maxLength > 0 && d.name && d.name.length > maxLength) ? d.name.slice(0, maxLength) + "..." : d.name;
+                })
+                .style("font-size", this._legendFontSize);
+
+            // add a transform for each item to spread them out horizontally based on the width of each item
+            let xoffset = 0;
+            const padding = 10;
+            legendElements
+                .attr("transform", function (d, i) {
+                    let translate = (i === 0) ?  "translate(0,0)" : "translate(" + (xoffset) + ",0)";
+                    xoffset +=  this.getBBox().width + padding;
+                    return translate;
+                });
+
+
+        }
     }
 
     /**

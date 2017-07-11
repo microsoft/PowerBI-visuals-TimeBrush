@@ -113,6 +113,32 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
     public reverseBars: boolean;
 
     /**
+     * Show / Hide the legend
+     */
+     @bool({
+        category: "Legend",
+        displayName: "Legend",
+        description: "If true, the legend will be displayed",
+        defaultValue: false,
+    })
+    public showLegend: boolean;
+
+
+    /**
+     * Legend Size
+     */
+     @num({
+        category: "Legend",
+        displayName: "Font Size",
+        description: "Font Size",
+        defaultValue: 10,
+        min: 5,
+        max: 50,
+    })
+    public legendFontSize: number;
+
+
+    /**
      * The size of the bars
      */
     @num({

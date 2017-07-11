@@ -65,3 +65,18 @@ export enum AxisPosition {
     Left = 1,
     Right = 2,
 }
+
+/**
+ * Defines an item displayed in the legend
+ */
+export interface LegendItem {
+    /**
+     * Category Name to Display
+     */
+    name: string;
+
+    /**
+     * RGB Color value
+     */
+    color: string;
+}
