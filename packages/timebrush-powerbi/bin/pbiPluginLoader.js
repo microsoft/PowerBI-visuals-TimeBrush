@@ -160,10 +160,11 @@ function pbivizPluginTemplate (pbiviz) {
                                             return new powerbi.visuals.utility.SelectionManager({hostServices: options.host});
                                         },
                                         colors: options.style.colorPalette.dataColors.getAllColors(),
-                                        persistProperties: options.host.persistProperties.bind(options.host)
+                                        persistProperties: options.host.persistProperties.bind(options.host),
+                                        onSelect: options.host.onSelect.bind(options.host),
                                     },
                                     element: options.element.get(0),
-                                    viewport: {width: 500, height: 500}
+                                    viewport: {width: 500, height: 500},
                                 };
                                 ${pbiviz.visual.visualClassName}.call(instance, false, adaptedOptions);
 
