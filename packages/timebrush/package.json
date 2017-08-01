@@ -65,6 +65,7 @@
     "underscore": "1.8.3",
     "wallaby-webpack": "0.0.16",
     "webpack": "1.12.9",
-    "yargs": "3.31.0"
+    "yargs": "3.31.0",
+    "ts-loader": "^2.0.3"
   }
 }
