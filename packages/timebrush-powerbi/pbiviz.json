@@ -1,0 +1,24 @@
+{
+  "visual": {
+    "name": "TimeBrush",
+    "displayName": "Time Brush",
+    "guid": "TimeBrush1450434005853",
+    "visualClassName": "TimeBrush",
+    "description": "This visual is currently in beta testing and is undergoing active development. Time Brush lets you filter a time-based dataset by directly dragging or brushing over a time period of interest. The initial display is a helpful overview that shows the frequency of items in each pre-defined time bucket (e.g., hours, days, years) as a vertical bar chart. Whenever you select a time period, any linked visuals are automatically filtered to display only those records with time attributes in the selected period.",
+    "supportUrl": "",
+    "githubUrl": "https://github.com/Microsoft/PowerBI-visuals-TimeBrush"
+  },
+  "author": {
+    "name": "Microsoft (experimental)",
+    "email": "msrvizsupport@microsoft.com"
+  },
+  "apiVersion": "",
+  "assets": {
+    "icon":"assets/icon.svg",
+    "screenshot": "assets/screenshot.png",
+    "thumbnail": "assets/thumbnail.png"
+  },
+  "style": "src/css/TimeBrushVisual.scss",
+  "capabilities": "capabilities.json",
+  "output": "dist/TimeBrush.pbiviz"
+}

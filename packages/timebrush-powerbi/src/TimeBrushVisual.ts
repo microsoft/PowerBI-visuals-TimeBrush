@@ -54,9 +54,7 @@ const MY_CSS_MODULE = require("!css!sass!./css/TimeBrushVisual.scss");
 const ldget = require("lodash/get");
 /* tslint:enable */
 
-@Visual(require("./build").output.PowerBI)
 @receiveDimensions
-@capabilities(myCapabilities)
 export default class TimeBrush extends StatefulVisual<TimeBrushState> {
     private host: IVisualHostServices;
     private timeColumn: DataViewCategoryColumn;
@@ -84,7 +82,7 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
     /**
      * Constructor for the timebrush visual
      */
-    constructor(noCss = false, timeBrushOverride?: TimeBrushImpl) {
+    constructor(noCss = false, options : any, timeBrushOverride?: TimeBrushImpl) {
         super("TimeBrush", noCss);
 
         // Tell visual base to not load sandboxed
@@ -100,6 +98,9 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
         this.element.on("mousedown click pointerdown touchstart touchdown", (e: any) => e.stopPropagation());
         this._internalState = TimeBrushState.create<TimeBrushState>();
         this._doPBIFilter = _.debounce((range: [Date, Date]) => this.updatePBIFilter(range), 500);
+
+        options.element = $(options.element); // make this a jquery object
+        this.init(options);
     }
 
     /** This is called once when the visual is initialially created */

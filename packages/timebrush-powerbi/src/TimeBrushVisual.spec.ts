@@ -46,13 +46,12 @@ describe("TimeBrushVisual", () => {
 
     let createVisual = () => {
         const timeBrushEle = $("<div>");
-        let timeBrush = new TimeBrush(timeBrushEle);
-        let instance = new TimeBrushVisual(true, <any>timeBrush);
-        instance["throwErrors"] = true;
         let initOptions = SpecUtils.createFakeInitOptions();
+        let timeBrush = new TimeBrush(timeBrushEle);
+        let instance = new TimeBrushVisual(true, initOptions, <any>timeBrush);
+        instance["throwErrors"] = true;
+        
         parentEle.append(initOptions.element);
-
-        instance.init(initOptions);
 
         return {
             instance,
@@ -72,7 +71,7 @@ describe("TimeBrushVisual", () => {
     const getDataWithSelection = () => {
         return dataWithSelection();
     };
-
+    
     it("should load", () => {
         expect(createVisual()).to.not.be.undefined;
     });
