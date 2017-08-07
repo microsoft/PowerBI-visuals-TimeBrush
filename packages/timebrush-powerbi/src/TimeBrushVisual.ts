@@ -23,16 +23,13 @@
  */
 
 declare var _: any;
-import { StatefulVisual } from "@essex/pbi-stateful/lib/StatefulVisual";
 
 import { TimeBrush as TimeBrushImpl } from "@essex/timebrush";
 import { TimeBrushVisualDataItem } from "./models";
 import { default as dataConverter, coerceDate } from "./dataConversion";
 import {
-    publishChange,
-} from "@essex/pbi-stateful/lib/stateful";
-import {
     Visual,
+    VisualBase,
     IDimensions,
     receiveDimensions,
     capabilities,
@@ -55,7 +52,7 @@ const ldget = require("lodash/get");
 /* tslint:enable */
 
 @receiveDimensions
-export default class TimeBrush extends StatefulVisual<TimeBrushState> {
+export default class TimeBrush extends VisualBase {
     private host: IVisualHostServices;
     private timeColumn: DataViewCategoryColumn;
     private timeBrush: TimeBrushImpl;
@@ -104,7 +101,8 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
     }
 
     /** This is called once when the visual is initialially created */
-    protected onInit(options: VisualInitOptions): void {
+    protected doInit(options: VisualInitOptions): void {
+        super.doInit(options);
         this.host = options.host;
         const dims = { width: options.viewport.width, height: options.viewport.height };
 
@@ -114,7 +112,7 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
     }
 
     /** Update is called for data updates, resizes & formatting changes */
-    protected onUpdate(options: VisualUpdateOptions, updateType: UpdateType) {
+    public updateWithType(options: VisualUpdateOptions, updateType: UpdateType) {
         let dataView = this.dataView = options.dataViews && options.dataViews[0];
         if (updateType !== UpdateType.Resize) {
             const newState = this._internalState.receiveFromPBI(dataView);
@@ -154,17 +152,11 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
         }
     }
 
-    /**
-     * Gets a list of the custom css modules
-     */
-    protected getCustomCssModules() {
-        return [MY_CSS_MODULE];
-    }
 
     /**
      * Generates the current state of the visual
      */
-    protected generateState() {
+    public get state(): TimeBrushState {
         return this._internalState.toJSONObject();
     }
 
@@ -172,7 +164,7 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
      * Called when a new state has been set on the visual
      * @param state The state being applied
      */
-    protected onSetState(state: TimeBrushState) {
+    public set state(state: TimeBrushState) {
         if (this.timeBrush && state) {
             // Incoming state has been json-serialized/deserialized. Dates are ISO string.
             let newRange = (<any>state.range || []).map((v: string) => new Date(v)) as [Date, Date];
@@ -194,9 +186,8 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
             this._internalState = this._internalState.receive(state);
 
             // Update PBI if this is user-triggered
-            if (!this.isHandlingUpdate) {
-                this._doPBIFilter(this._internalState.range);
-            }
+            this._doPBIFilter(this._internalState.range);
+
         }
     }
 
@@ -210,9 +201,6 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
         return otherPropsAreEqual && !seriesColorsChanged;
     }
 
-    public getHashCode(state: TimeBrushState) {
-        return super.getHashCode(_.omit(state, ["seriesColors"]));
-    }
 
     /**
      * Enumerates the instances for the objects that appear in the power bi panel
@@ -322,7 +310,6 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
         } else {
             label = "Clear selection";
         }
-        publishChange(this, label, this.state);
         this._doPBIFilter(range);
     }
 
