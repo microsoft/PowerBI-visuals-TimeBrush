@@ -23,7 +23,6 @@
  */
 
 import { TimeBrushDataItem } from "@essex/timebrush";
-import SelectionId = powerbi.visuals.SelectionId;
 import { IColoredObject } from "@essex/pbi-base";
 
 /**
@@ -34,7 +33,7 @@ export interface TimeBrushVisualDataItem extends TimeBrushDataItem {
     /**
      * The identity for this individual selection item
      */
-    identity: SelectionId;
+    identity: powerbi.visuals.ISelectionId;
 
     /**
      * The raw unparsed date for this item

@@ -129,15 +129,7 @@
 			"properties": {
 				"filter": {
 					"type": {
-						"filter": {}
-					},
-					"rule": {
-						"output": {
-							"property": "selected",
-							"selector": [
-								"Time"
-							]
-						}
+						"filter": true
 					}
 				}
 			}

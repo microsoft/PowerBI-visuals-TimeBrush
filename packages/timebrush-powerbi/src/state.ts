@@ -30,8 +30,6 @@ import {
     colors,
     numberSetting as num,
     boolSetting as bool,
-    deserializeObjectWithIdentity,
-    serializeObjectWithIdentity,
     gradientSetting as gradient,
     enumSetting,
     GradientSettings,
@@ -171,26 +169,4 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
         return this.colorMode === ColorMode.Gradient;
     }
 
-    /**
-     * Receives the new properties
-     * @param newProps The properties to merge into state
-     */
-    public receive(newProps?: any) {
-        if (newProps && newProps.seriesColors) {
-            newProps.seriesColors = newProps.seriesColors.map(deserializeObjectWithIdentity);
-        }
-        const base = super.receive(newProps);
-        return base;
-    }
-
-    /**
-     * Creates a JSON object version of this state, suitable for storage
-     */
-    public toJSONObject() {
-        const jsonObj = super.toJSONObject() as TimeBrushVisualState;
-        if (this.seriesColors) {
-            jsonObj.seriesColors = <any>this.seriesColors.map(serializeObjectWithIdentity);
-        }
-        return jsonObj;
-    }
 }

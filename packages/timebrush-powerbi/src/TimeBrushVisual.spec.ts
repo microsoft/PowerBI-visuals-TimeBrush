@@ -46,9 +46,9 @@ describe("TimeBrushVisual", () => {
 
     let createVisual = () => {
         const timeBrushEle = $("<div>");
-        let initOptions = SpecUtils.createFakeInitOptions();
+        let initOptions = SpecUtils.createFakeConstructorOptions();
         let timeBrush = new TimeBrush(timeBrushEle);
-        let instance = new TimeBrushVisual(true, initOptions, <any>timeBrush);
+        let instance = new TimeBrushVisual(initOptions, <any>timeBrush);
         instance["throwErrors"] = true;
         
         parentEle.append(initOptions.element);
