@@ -23,7 +23,7 @@
  */
 
 declare var _: any;
-import "powerbi-visuals-tools/templates/visuals/.api/v1.7.0/PowerBI-Visuals";
+import "powerbi-visuals-tools/templates/visuals/.api/v1.7.0/PowerBI-visuals";
 import { TimeBrush as TimeBrushImpl } from "@essex/timebrush";
 import { TimeBrushVisualDataItem } from "./models";
 import { default as dataConverter, coerceDate } from "./dataConversion";
