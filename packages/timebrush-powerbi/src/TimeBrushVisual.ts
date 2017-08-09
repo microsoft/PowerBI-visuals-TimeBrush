@@ -89,6 +89,7 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
 
         const className = MY_CSS_MODULE && MY_CSS_MODULE.locals && MY_CSS_MODULE.locals.className;
         if (className) {
+            $(options.element).append($("<style>" + MY_CSS_MODULE + "</style>"));
             this.element.addClass(className);
         }
 
