@@ -2,7 +2,8 @@
   "scripts": {
     "postinstall": "lerna exec --concurrency=1 -- yarn && lerna exec --concurrency=99 -- linklocal --named @essex/timebrush ../timebrush",
     "test": "lerna --stream --scope @essex/timebrush run test && lerna run test --stream --ignore @essex/timebrush",
-    "test:powerbi": "lerna --stream --scope @essex/timebrush run test && lerna run test --stream --scope @essex/timebrush-powerbi"
+    "test:powerbi": "lerna --stream --scope @essex/timebrush run test && lerna run test --stream --scope @essex/timebrush-powerbi",
+    "start": "lerna --stream --scope @essex/timebrush run test && lerna run start --stream --scope @essex/timebrush-powerbi"
   },
   "dependencies": {
     "imports-loader": "^0.7.1",

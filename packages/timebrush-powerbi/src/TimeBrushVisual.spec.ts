@@ -293,7 +293,7 @@ describe("TimeBrushVisual", () => {
             expect(timeBrush.selectedRange).to.be.deep.equal(selectedRange);
 
             // Make sure the state was not cleared
-            expect(instance.state.range).to.not.be.empty;
+            expect(instance.state.selectedRange).to.not.be.empty;
         });
 
         // Now that I think of it, why??
@@ -301,11 +301,8 @@ describe("TimeBrushVisual", () => {
             const { instance, timeBrush } = createVisual();
             const { options } = getDataWithSelection();
 
+            options.dataViews[0].metadata.objects["selection"] = {"selectedRange":JSON.stringify([new Date(1000, 10, 10), new Date(5000, 10, 10)])};
             instance.update(options);
-
-            instance.state = <any>{
-                range: [new Date(1000, 10, 10), new Date(12000, 10, 10)],
-            };
 
             expect(timeBrush.selectedRange).to.be.deep.equal([timeBrush.data[0].date, timeBrush.data[timeBrush.data.length - 1].date]);
         });
@@ -316,15 +313,13 @@ describe("TimeBrushVisual", () => {
             const { options } = getDataWithSelection();
 
             instance.update(options);
+            const date = new Date(timeBrush.data[0].date.getTime());
+            date.setHours(date.getHours() - date.getTimezoneOffset() / 60); // convert to UTC so json.stringify doesn't mess up the time.
+            options.dataViews[0].metadata.objects["selection"] = {"selectedRange": JSON.stringify([date, date])};
+            instance.update(options);
 
-            const firstItem = timeBrush.data[0];
-            const date = new Date(firstItem.date.getTime());
-
-            instance.state = <any>{
-                range: [date, date],
-            };
-
-            expect(timeBrush.selectedRange).to.be.deep.equal([new Date(date.getTime() - 1), new Date(date.getTime() + 1)]);
+            const expectedDate = new Date(timeBrush.data[0].date.getTime());
+            expect(timeBrush.selectedRange).to.be.deep.equal([new Date(expectedDate.getTime() - 1), new Date(expectedDate.getTime() + 1)]);
         });
 
         it("should clear the selection if the underlying datasource changes, and there was something already selected in the timebrush", () => { // tslint:disable-line
@@ -336,7 +331,7 @@ describe("TimeBrushVisual", () => {
             instance.update(simpleDataUpdate.options);
 
             // Here is the initial range
-            instance.state.range = timeBrush.selectedRange = [simpleDataUpdate.expected[0].date, simpleDataUpdate.expected[2].date];
+            instance.state.selectedRange = timeBrush.selectedRange = [simpleDataUpdate.expected[0].date, simpleDataUpdate.expected[2].date];
 
             // Change the dataset
             instance.update(changedDatasetOptions);
@@ -354,7 +349,7 @@ describe("TimeBrushVisual", () => {
             instance.update(dataSetWithSelection.options);
 
             // Make sure stuff is selected
-            expect(instance.state.range).to.not.be.empty;
+            expect(instance.state.selectedRange).to.not.be.empty;
 
             // Change the dataset with no selection, and an entirely different column
             instance.update(simpleDataUpdate.options);
@@ -363,7 +358,7 @@ describe("TimeBrushVisual", () => {
             expect(timeBrush.selectedRange).to.be.empty;
 
             // Make sure the state was cleared
-            expect(instance.state.range).to.be.empty;
+            expect(instance.state.selectedRange).to.be.empty;
         });
 
         it("should clear the selection if the underlying datasource changes", () => {
@@ -396,7 +391,7 @@ describe("TimeBrushVisual", () => {
             expect(timeBrush.selectedRange).to.not.be.empty;
 
             // Make sure the state was not cleared
-            expect(instance.state.range).to.not.be.empty;
+            expect(instance.state.selectedRange).to.not.be.empty;
         });
     });
 });

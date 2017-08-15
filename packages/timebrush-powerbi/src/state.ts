@@ -34,6 +34,7 @@ import {
     enumSetting,
     GradientSettings,
     settings,
+    jsonSetting,
 } from "@essex/pbi-base";
 
 import { IColorSettings, ColorMode } from "./models";
@@ -160,7 +161,11 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
     /**
      * The selected time range
      */
-    public range: [Date, Date];
+    @jsonSetting({
+        category: "Selection",
+        enumerable: false,
+    })
+    public selectedRange: [Date, Date];
 
     /**
      * A utility property to indicate if the Gradient color mode is selected

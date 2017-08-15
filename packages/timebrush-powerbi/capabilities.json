@@ -223,6 +223,11 @@
 					"type": {
 						"bool": true
 					}
+				},
+				"selectedRange": {
+					"type" : {
+						"text": true
+					}
 				}
 			}
 		},

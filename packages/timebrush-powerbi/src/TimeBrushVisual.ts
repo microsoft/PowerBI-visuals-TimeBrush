@@ -141,7 +141,23 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
                 }
             }
 
-            this.state = newState.toJSONObject();
+            let newRange = (<any>newState.selectedRange || []).map((v: string) => new Date(v)) as [Date, Date];
+            // Bound the range to actual available dates
+            newRange = <[Date, Date]>this.getRangeBoundItems(newRange).map(n => n.date);
+
+            // If the selected range is just a single item, then offset the final dates a little bit to create a brush
+            if (newRange.length === 2 && newRange[0].getTime() === newRange[1].getTime()) {
+                newRange = [new Date(newRange[0].getTime() - 1), new Date(newRange[1].getTime() + 1)];
+            }
+
+            newState.selectedRange = newRange;
+
+            // Update the Time Brush
+            this.timeBrush.selectedRange = newState.selectedRange;
+
+            // Update the internal state
+            this._internalState = this._internalState.receive(newState);
+
         }
     }
 
@@ -162,36 +178,6 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
         return this._internalState.toJSONObject();
     }
 
-    /**
-     * Called when a new state has been set on the visual
-     * @param state The state being applied
-     */
-    public set state(state: TimeBrushState) {
-        if (this.timeBrush && state) {
-            // Incoming state has been json-serialized/deserialized. Dates are ISO string.
-            let newRange = (<any>state.range || []).map((v: string) => new Date(v)) as [Date, Date];
-
-            // Bound the range to actual available dates
-            newRange = <[Date, Date]>this.getRangeBoundItems(newRange).map(n => n.date);
-
-            // If the selected range is just a single item, then offset the final dates a little bit to create a brush
-            if (newRange.length === 2 && newRange[0].getTime() === newRange[1].getTime()) {
-                newRange = [new Date(newRange[0].getTime() - 1), new Date(newRange[1].getTime() + 1)];
-            }
-
-            state.range = newRange;
-
-            // Update the Time Brush
-            this.timeBrush.selectedRange = state.range;
-
-            // Update the internal state
-            this._internalState = this._internalState.receive(state);
-
-            // Update PBI if this is user-triggered
-            this._doPBIFilter(this._internalState.range);
-
-        }
-    }
 
     public areEqual(s1: TimeBrushState, s2: TimeBrushState): boolean {
         const otherPropsAreEqual = _.isEqual(
@@ -244,7 +230,7 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
         let endDate: Date;
         
         let {dataSourceChanged, filterStartDate, filterEndDate} = this.parseDatesFromPowerBi(dataView, hasDataChanged);
-        
+
         if (filterStartDate && filterEndDate) {
 
             // If the user indicates whether or not to clear the selection when the underlying dataset has changed
@@ -263,9 +249,9 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
                 this.timeBrush.selectedRange = undefined;
             }
 
-            state.range = this.timeBrush.selectedRange;
+            state.selectedRange = this.timeBrush.selectedRange;
         } else if (dataView) {
-            state.range = undefined;
+            state.selectedRange = undefined;
         }
     }
 
@@ -274,13 +260,21 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
      */
     private parseDatesFromPowerBi(dataView: powerbi.DataView, hasDataChanged: boolean) {
         const objects: any = ldget(dataView, "metadata.objects", undefined);
-        const oldFilter = ldget(objects, "general.filter.whereItems[0].condition", undefined);
-
         let filterStartDate;
         let filterEndDate;
         let dataSourceChanged = hasDataChanged;
+        
+        // attempt reding the filter format for the new api
+        const selectedRange = ldget(objects, "selection.selectedRange", undefined);
 
-        if (oldFilter) {
+        // read the filter with the legacy format to support workbooks saved with the old api
+        const oldFilter = ldget(objects, "general.filter.whereItems[0].condition", undefined);
+        
+        if (selectedRange) {
+            [filterStartDate, filterEndDate] = JSON.parse(selectedRange);
+            dataSourceChanged = false;
+        }
+        else if (oldFilter && oldFilter.upper && oldFilter.lower) {
             filterStartDate = (oldFilter.lower).value;
             filterEndDate = (oldFilter.upper).value;
 
@@ -295,14 +289,8 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
                         filterSource.schema !== source.schema;
                 }
             }
-        } else {
-            // TODO check if data source has changed.
-            const selectedRange = ldget(objects, "selection.selectedRange", undefined);
-            if (selectedRange) {
-                [filterStartDate, filterEndDate] = JSON.parse(selectedRange);
-            }
-
         }
+
         return {dataSourceChanged, filterStartDate, filterEndDate};
 
 
@@ -314,13 +302,7 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
      * @param range undefined means no range, otherwise should be [startDate, endDate]
      */
     private onTimeRangeSelected(range: [Date, Date]) {
-        this.state = this._internalState.receive({ range }).toJSONObject();
-        let label: string;
-        if (range && range.length === 2) {
-            label = `Select range ${range[0].toLocaleDateString()} - ${range[1].toLocaleDateString()}`;
-        } else {
-            label = "Clear selection";
-        }
+        this._internalState.selectedRange = range;
         this._doPBIFilter(range);
     }
 
@@ -340,22 +322,26 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
             };
 
             filter = new models.AdvancedFilter(target, "And", [
-                { operator: "GreaterThanOrEqual", value: ""},
-                { operator: "LessThanOrEqual", value: ""},
+                { operator: "GreaterThanOrEqual", value: value1},
+                { operator: "LessThanOrEqual", value: value2},
             ]);
-
+            this.host.applyJsonFilter(filter, "general", "filter");
+        } else {
+            // TODO, clear the filter here.  
         }
+
+        // persist selection to powerbi
         let instance =  <powerbi.VisualObjectInstance>{
             objectName: "selection",
             selector: undefined,
-            properties: { selectedRange: range },
+            properties: { selectedRange: JSON.stringify(range) },
         };
-
         let objects: powerbi.VisualObjectInstancesToPersist = { };
         $.extend(objects, { [filter ? "merge" : "remove"]: [instance] });
-        this.host.applyJsonFilter(filter, "general", "filter");
         this.host.persistProperties(objects);
     }
+
+
 
     /**
      * Gets the items that are nearest to the given date range

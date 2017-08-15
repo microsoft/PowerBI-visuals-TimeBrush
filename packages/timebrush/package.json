@@ -24,5 +24,7 @@
     "moment": "^2.12.0",
     "ts-loader": "^2.3.2"
   },
-  "devDependencies": {}
+  "devDependencies": {
+      "ts-loader": "^2.0.3"
+  }
 }
