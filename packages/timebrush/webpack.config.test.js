@@ -29,7 +29,7 @@ module.exports = {
     devtool: 'eval',
     resolve: {
         // Add `.ts` and `.tsx` as a resolvable extension.
-        extensions: ['', '.webpack.js', '.web.js', '.js', '.json']
+        extensions: ['', '.webpack.js', '.web.js', '.js', '.ts', '.json']
     },
     module: {
         loaders: [
@@ -40,6 +40,10 @@ module.exports = {
             {
                 test: /\.json$/,
                 loader: 'json-loader'
+            },
+            {
+                test: /\.ts$/,
+                loader: 'ts-loader'
             }
         ],
     },
