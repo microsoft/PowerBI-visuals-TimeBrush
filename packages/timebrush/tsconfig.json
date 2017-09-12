@@ -6,8 +6,12 @@
     "jsx": "react",
     "declaration": true,
     "noImplicitAny": true,
-    "suppressImplicitAnyIndexErrors": true
+    "suppressImplicitAnyIndexErrors": true,
+    "outDir": "lib"
   },
+  "files": [
+    "src/index.ts"
+  ],
   "compileOnSave": false,
   "exclude": [
     "power-bi",

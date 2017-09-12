@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-import EventEmitter from "../base/EventEmitter";
+import EventEmitter from "./base/EventEmitter";
 import { TimeBrushDataItem, AxisPosition, LegendItem } from "./models";
 
 /* tslint:disable */

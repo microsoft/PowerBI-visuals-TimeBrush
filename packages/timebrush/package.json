@@ -2,8 +2,8 @@
   "name": "@essex/timebrush",
   "version": "1.0.1",
   "description": "",
-  "main": "src/index.js",
-  "typings": "src/index.d.ts",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
   "scripts": {
     "lint": "tslint \"src/**/*[!.d].{ts,tsx}\"",
     "docs": "typedoc --out docs --ignoreCompilerErrors ./ --externalPattern \"**/node_modules/**/*.*\" --exclude \"**/src/**/*.spec.ts\"",
