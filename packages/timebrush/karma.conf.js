@@ -32,10 +32,10 @@ module.exports = config => {
   config.set({
     basePath: '',
     frameworks: ['mocha'],
-    files: [ 'src/**/*.spec.js' ],
+    files: [ 'src/**/*.spec.ts' ],
     exclude: [],
     preprocessors: {
-      'src/**/*.spec.js': ['webpack', 'sourcemap']
+      'src/**/*.spec.ts': ['webpack']
     },
     webpack: webpackConf,
     reporters: ['progress'],
@@ -45,6 +45,12 @@ module.exports = config => {
     autoWatch: isTddMode,
     browsers: isTddMode ? ['Chrome'] : [ 'PhantomJS' ],
     singleRun: !isTddMode,
-    concurrency: Infinity
+    concurrency: Infinity,
+    customLaunchers: {
+      'PhantomJS_debug': {
+        base: 'PhantomJS',
+        debug: true
+      }
+    },
   });
 };

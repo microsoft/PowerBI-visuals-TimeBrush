@@ -27,7 +27,6 @@ import {
     instanceColorSetting as coloredInstances,
     IColoredObject,
     colorSetting as color,
-    colors,
     numberSetting as num,
     boolSetting as bool,
     gradientSetting as gradient,
@@ -36,11 +35,11 @@ import {
     settings,
     jsonSetting,
 } from "@essex/visual-settings";
+import { fullColors } from "@essex/visual-styling";
 
 import { IColorSettings, ColorMode } from "./models";
 import { YAxisSettings } from "./settings";
 import { dataSupportsDefaultColor, dataSupportsColorizedInstances, dataSupportsGradients } from "./dataConversion";
-const fullColors = colors.full;
 
 /**
  * Represents the state of the timebrush
