@@ -63,7 +63,6 @@
     "karma-sourcemap-loader": "^0.3.7",
     "karma-webpack": "^1.7.0",
     "lerna": "^2.10.1",
-    "linklocal": "^2.8.0",
     "lolex": "^1.4.0",
     "mocha": "2.3.4",
     "mocha-jsdom": "1.0.0",
