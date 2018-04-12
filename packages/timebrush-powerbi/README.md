@@ -4,7 +4,7 @@
 
 This is the PowerBI visual version of the Time Brush.
 
-> This visual is currently in beta testing and is undergoing active development.
+> This visual is experimental and not actively being developed, only major issues will be addressed.
 
 ## Usage
 * Fork this repo

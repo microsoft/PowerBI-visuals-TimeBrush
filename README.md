@@ -6,7 +6,7 @@ Time Brush lets you filter a time-based dataset by directly dragging or brushing
 
 ![TimeBrush](/assets/screenshot.png?raw=true)
 
-> This visual is currently in beta testing and is undergoing active development.
+> This visual is experimental and not actively being developed, only major issues will be addressed.
 
 ## Usage
 * Install [node.js 6+](https://nodejs.org)
