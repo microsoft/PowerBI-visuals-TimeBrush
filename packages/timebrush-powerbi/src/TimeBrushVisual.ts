@@ -31,13 +31,12 @@ import {
     IDimensions,
     receiveDimensions,
     UpdateType,
-    calcUpdateType
-} from "@essex/pbi-base";
+    calcUpdateType,
+} from "@essex/visual-utils";
 
 import TimeBrushState from "./state";
 import * as models from "powerbi-models";
-import data = powerbi.data;
-import * as $ from 'jquery';
+import * as $ from "jquery";
 /* tslint:disable */
 const stringify = require("json-stringify-safe");
 const MY_CSS_MODULE = require("!css!sass!./css/TimeBrushVisual.scss");
@@ -46,6 +45,12 @@ const ldget = require("lodash/get");
 
 @receiveDimensions
 export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
+
+    /**
+     * The visuals element
+     */
+    protected element: JQuery;
+
     private host: powerbi.extensibility.visual.IVisualHost;
     private timeColumn: powerbi.DataViewCategoryColumn;
     private timeBrush: TimeBrushImpl;
@@ -63,11 +68,6 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
     private dataView: powerbi.DataView;
 
     /**
-     * The visuals element
-     */
-    protected element: JQuery;
-
-    /**
      * The previous update options
      */
     private prevUpdateOptions: powerbi.extensibility.visual.VisualUpdateOptions;
@@ -82,7 +82,7 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
     /**
      * Constructor for the timebrush visual
      */
-    constructor(options : powerbi.extensibility.visual.VisualConstructorOptions, timeBrushOverride?: TimeBrushImpl) {
+    constructor(options: powerbi.extensibility.visual.VisualConstructorOptions, timeBrushOverride?: TimeBrushImpl) {
         this.host = options.host;
 
         this.element = $(`<div><div class="timebrush"></div></div>`);
@@ -99,7 +99,7 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
         this._doPBIFilter = _.debounce((range: [Date, Date]) => this.updatePBIFilter(range), 500);
 
         options.element.appendChild(this.element[0]);
-        
+
          // Allow for overriding of the timebrush
         this.timeBrush = timeBrushOverride;
         this.timeBrush = this.timeBrush || new TimeBrushImpl(this.element.find(".timebrush"));
@@ -115,7 +115,7 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
     public update(options: powerbi.extensibility.visual.VisualUpdateOptions, vm?: any, type?: UpdateType) {
         const updateType = type !== undefined ? type : calcUpdateType(this.prevUpdateOptions, options);
         this.prevUpdateOptions = options;
-        let dataView = this.dataView = options.dataViews && options.dataViews[0];
+        const dataView = this.dataView = options.dataViews && options.dataViews[0];
         if (updateType !== UpdateType.Resize) {
             const newState = this._internalState.receiveFromPBI(dataView);
 
@@ -182,7 +182,7 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
     public areEqual(s1: TimeBrushState, s2: TimeBrushState): boolean {
         const otherPropsAreEqual = _.isEqual(
             _.omit(s1, ["seriesColors"]),
-            _.omit(s2, ["seriesColors"])
+            _.omit(s2, ["seriesColors"]),
         );
         const seriesColorsChanged = (s1.seriesColors.length > 1 || s2.seriesColors.length > 1) &&
             !_.isEqual(s1.seriesColors, s2.seriesColors);
@@ -194,7 +194,7 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
      * Enumerates the instances for the objects that appear in the power bi panel
      */
     public enumerateObjectInstances(options: powerbi.EnumerateVisualObjectInstancesOptions): powerbi.VisualObjectInstanceEnumeration {
-        let instances = [] as powerbi.VisualObjectInstance[];
+        const instances = [] as powerbi.VisualObjectInstance[];
         return instances.concat(this._internalState.buildEnumerationObjects(options.objectName, this.dataView));
     }
 
@@ -203,8 +203,8 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
      */
     private loadDataFromPowerBI(dataView: powerbi.DataView, hasDataChanged: boolean, state: TimeBrushState) {
         if (hasDataChanged || hasColorSettingsChanged(this._internalState, state)) {
-            let dataViewCategorical = dataView.categorical;
-            let data = dataConverter(dataView, this.host.createSelectionIdBuilder, state);
+            const dataViewCategorical = dataView.categorical;
+            const data = dataConverter(dataView, this.host.createSelectionIdBuilder, state);
             this._data = data;
             // Stash this bad boy for later, so we can filter the time column
             if (dataViewCategorical && dataViewCategorical.categories) {
@@ -228,13 +228,13 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
     private loadSelectedRangeFromPowerBI(dataView: powerbi.DataView, hasDataChanged: boolean, state: TimeBrushState) {
         let startDate: Date;
         let endDate: Date;
-        
-        let {dataSourceChanged, filterStartDate, filterEndDate} = this.parseDatesFromPowerBi(dataView, hasDataChanged);
+
+        const {dataSourceChanged, filterStartDate, filterEndDate} = this.parseDatesFromPowerBi(dataView, hasDataChanged);
 
         if (filterStartDate && filterEndDate) {
 
             // If the user indicates whether or not to clear the selection when the underlying dataset has changed
-            let updateSelection = !dataSourceChanged || !state.clearSelectionOnDataChange;
+            const updateSelection = !dataSourceChanged || !state.clearSelectionOnDataChange;
             if (updateSelection) {
                 startDate = coerceDate(filterStartDate);
                 endDate = coerceDate(filterEndDate);
@@ -263,18 +263,17 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
         let filterStartDate;
         let filterEndDate;
         let dataSourceChanged = hasDataChanged;
-        
+
         // attempt reding the filter format for the new api
         const selectedRange = ldget(objects, "selection.selectedRange", undefined);
 
         // read the filter with the legacy format to support workbooks saved with the old api
         const oldFilter = ldget(objects, "general.filter.whereItems[0].condition", undefined);
-        
+
         if (selectedRange) {
             [filterStartDate, filterEndDate] = JSON.parse(selectedRange);
             dataSourceChanged = false;
-        }
-        else if (oldFilter && oldFilter.upper && oldFilter.lower) {
+        } else if (oldFilter && oldFilter.upper && oldFilter.lower) {
             filterStartDate = (oldFilter.lower).value;
             filterEndDate = (oldFilter.upper).value;
 
@@ -313,12 +312,12 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
         let filter: any;
         const items = this.getRangeBoundItems(range);
         if (items && items.length === 2) {
-            let value1 = items[0].rawDate;
-            let value2 = items[1].rawDate;
+            const value1 = items[0].rawDate;
+            const value2 = items[1].rawDate;
 
             const target: models.IFilterColumnTarget = {
-                table: this.timeColumn.source.queryName.substr(0, this.timeColumn.source.queryName.indexOf('.')),
-                column: this.timeColumn.source.displayName
+                table: this.timeColumn.source.queryName.substr(0, this.timeColumn.source.queryName.indexOf(".")),
+                column: this.timeColumn.source.displayName,
             };
 
             filter = new models.AdvancedFilter(target, "And", [
@@ -327,16 +326,16 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
             ]);
             this.host.applyJsonFilter(filter, "general", "filter");
         } else {
-            // TODO, clear the filter here.  
+            // TODO, clear the filter here.
         }
 
         // persist selection to powerbi
-        let instance =  <powerbi.VisualObjectInstance>{
+        const instance =  <powerbi.VisualObjectInstance>{
             objectName: "selection",
             selector: undefined,
             properties: { selectedRange: JSON.stringify(range) },
         };
-        let objects: powerbi.VisualObjectInstancesToPersist = { };
+        const objects: powerbi.VisualObjectInstancesToPersist = { };
         $.extend(objects, { [filter ? "merge" : "remove"]: [instance] });
         this.host.persistProperties(objects);
     }
@@ -381,7 +380,7 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
 function hasColorSettingsChanged(state: TimeBrushState, newState: TimeBrushState) {
     "use strict";
     if (state && newState) {
-        let changed = state.useGradient !== newState.useGradient ||
+        const changed = state.useGradient !== newState.useGradient ||
             state.gradient.endColor !== newState.gradient.endColor ||
             state.defaultBarColor !== newState.defaultBarColor ||
             state.gradient.startColor !== newState.gradient.startColor ||

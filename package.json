@@ -1,15 +1,18 @@
 {
   "scripts": {
-    "postinstall": "lerna exec --concurrency=1 -- yarn && lerna exec --concurrency=99 -- linklocal --named @essex/timebrush ../timebrush",
-    "test": "lerna --stream --scope @essex/timebrush run test && lerna run test --stream --ignore @essex/timebrush",
-    "test:powerbi": "lerna --stream --scope @essex/timebrush run test && lerna run test --stream --scope @essex/timebrush-powerbi",
-    "start": "lerna --stream --scope @essex/timebrush run test && lerna run start --stream --scope @essex/timebrush-powerbi"
+    "lint": "tslint \"packages/*/src/**/*[!.d,.spec].{ts,tsx}\"",
+    "lint:fix": "tslint \"packages/*/src/**/*[!.d,.spec].{ts,tsx}\" --fix",
+    "test": "npm run lint && lerna run test --stream",
+    "start": "lerna run test --stream --scope @essex/tablesorter && lerna run start --stream"
   },
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "dependencies": {
     "imports-loader": "^0.7.1",
     "node-noop": "^1.0.0",
     "powerbi-models": "^0.11.3",
-    "powerbi-visuals-tools": "^1.7.1",
     "powerbi-visuals-utils-dataviewutils": "^1.2.0",
     "powerbi-visuals-utils-formattingutils": "^2.1.0",
     "powerbi-visuals-utils-svgutils": "^1.1.0",
@@ -25,6 +28,7 @@
     "babel-loader": "6.x",
     "chai": "3.4.1",
     "clean-css": "^4.0.12",
+    "copyfiles": "^2.0.0",
     "css-loader": "0.23.1",
     "del": "2.2.0",
     "es6-promise": "^3.0.2",
@@ -58,7 +62,7 @@
     "karma-sinon-chai": "^1.2.0",
     "karma-sourcemap-loader": "^0.3.7",
     "karma-webpack": "^1.7.0",
-    "lerna": "^2.0.0-beta.38",
+    "lerna": "^2.10.1",
     "linklocal": "^2.8.0",
     "lolex": "^1.4.0",
     "mocha": "2.3.4",
@@ -68,6 +72,7 @@
     "node-zip": "^1.1.1",
     "npm-run-all": "^1.7.0",
     "phantomjs-prebuilt": "^2.1.7",
+    "powerbi-visuals-tools": "^1.11.2",
     "raw-loader": "0.5.1",
     "react": "0.14.6",
     "react-dom": "0.14.6",
@@ -81,7 +86,7 @@
     "tar.gz": "^1.0.5",
     "ts-loader": "^2.0.3",
     "ts-node": "0.5.5",
-    "tslint": "^3.15.1",
+    "tslint": "^5.9.1",
     "typedoc": "^0.7.1",
     "typescript": "^2.4.1",
     "underscore": "1.8.3",

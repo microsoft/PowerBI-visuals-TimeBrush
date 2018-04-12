@@ -35,7 +35,7 @@ import {
     GradientSettings,
     settings,
     jsonSetting,
-} from "@essex/pbi-base";
+} from "@essex/visual-settings";
 
 import { IColorSettings, ColorMode } from "./models";
 import { YAxisSettings } from "./settings";

@@ -2,16 +2,16 @@
   "name": "@essex/timebrush",
   "version": "1.0.1",
   "description": "",
-  "main": "src/index.js",
-  "typings": "src/index.d.ts",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "private": true,
   "scripts": {
-    "lint": "tslint \"src/**/*[!.d].{ts,tsx}\"",
-    "docs": "typedoc --out docs --ignoreCompilerErrors ./ --externalPattern \"**/node_modules/**/*.*\" --exclude \"**/src/**/*.spec.ts\"",
+    "clean": "rimraf dist",
+    "copy:css": "copyfiles -u 1 \"src/**/*.scss\" dist/",
     "karma:tdd": "karma start --tdd",
     "karma:once": "karma start",
-    "verify": "tsc && npm-run-all lint karma:once docs",
-    "test": "npm-run-all verify",
-    "preversion": "npm run test"
+    "docs": "typedoc --out docs --exclude **/src/**/*.spec.ts",
+    "test": "npm run clean && tsc && npm-run-all copy:css karma:once docs"
   },
   "author": "Microsoft",
   "license": "MIT",

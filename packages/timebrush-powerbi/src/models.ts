@@ -23,7 +23,7 @@
  */
 
 import { TimeBrushDataItem } from "@essex/timebrush";
-import { IColoredObject } from "@essex/pbi-base";
+import { IColoredObject } from "@essex/visual-settings";
 
 /**
  * The data item used by the TimeBrushVisual

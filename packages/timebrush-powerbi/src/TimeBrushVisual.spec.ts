@@ -26,7 +26,7 @@ import * as $ from "jquery";
 import simpleData from "./test/simpleData";
 import dataWithBucketsAndSettings from "./test/dataWithBucketsAndSettings";
 import dataWithSelection from "./test/dataWithSelections";
-import { Utils as SpecUtils } from "@essex/pbi-base/dist/spec/visualHelpers";
+import { Utils as SpecUtils } from "@essex/visual-testing-tools";
 import { expect } from "chai";
 import { TimeBrush } from "@essex/timebrush";
 import TimeBrushVisual from "./TimeBrushVisual";
