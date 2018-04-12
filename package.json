@@ -3,7 +3,7 @@
     "lint": "tslint \"packages/*/src/**/*[!.d,.spec].{ts,tsx}\"",
     "lint:fix": "tslint \"packages/*/src/**/*[!.d,.spec].{ts,tsx}\" --fix",
     "test": "npm run lint && lerna run test --stream",
-    "start": "lerna run test --stream --scope @essex/tablesorter && lerna run start --stream"
+    "start": "lerna run test --stream --scope @essex/timebrush && lerna run start --stream"
   },
   "private": true,
   "workspaces": [
