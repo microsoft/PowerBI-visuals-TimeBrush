@@ -142,23 +142,15 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
                 }
             }
 
-            let newRange = (<any>newState.selectedRange || []).map((v: string) => new Date(v)) as [Date, Date];
-            // Bound the range to actual available dates
-            newRange = <[Date, Date]>this.getRangeBoundItems(newRange).map(n => n.date);
-
-            // If the selected range is just a single item, then offset the final dates a little bit to create a brush
-            if (newRange.length === 2 && newRange[0].getTime() === newRange[1].getTime()) {
-                newRange = [new Date(newRange[0].getTime() - 1), new Date(newRange[1].getTime() + 1)];
-            }
+            const newRange = this.boundRangeByItemDates((<any>newState.selectedRange || []).map((v: string) => new Date(v)));
 
             newState.selectedRange = newRange;
 
             // Update the Time Brush
-            this.timeBrush.selectedRange = newState.selectedRange;
+            this.timeBrush.selectedRange = newRange;
 
             // Update the internal state
             this._internalState = this._internalState.receive(newState);
-
         }
     }
 
@@ -197,6 +189,21 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
     public enumerateObjectInstances(options: powerbi.EnumerateVisualObjectInstancesOptions): powerbi.VisualObjectInstanceEnumeration {
         const instances = [] as powerbi.VisualObjectInstance[];
         return instances.concat(this._internalState.buildEnumerationObjects(options.objectName, this.dataView));
+    }
+
+    /**
+     * Adjusts the given range to the nearest items dates
+     * @param range The range to bound
+     */
+    private boundRangeByItemDates(range: [Date, Date]) {
+         // Bound the range to actual available dates
+         range = <[Date, Date]>this.getRangeBoundItems(range).map(n => n.date);
+
+         // If the selected range is just a single item, then offset the final dates a little bit to create a brush
+         if (range.length === 2 && range[0].getTime() === range[1].getTime()) {
+             range = [new Date(range[0].getTime() - 1), new Date(range[1].getTime() + 1)];
+         }
+         return range;
     }
 
     /**
@@ -273,6 +280,9 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
                 filterStartDate = appliedFilter.conditions[0].value;
                 filterEndDate = appliedFilter.conditions[1].value;
 
+                // Sometimes the appliedFilter.target is null, so lets just assume that the dataSource didn't change.
+                dataSourceChanged = false;
+
                 if (appliedFilter.target) {
                     const { table, column } = getFilterTargetFromColumn(this.timeColumn);
                     dataSourceChanged =
@@ -311,7 +321,13 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
      * @param range undefined means no range, otherwise should be [startDate, endDate]
      */
     private onTimeRangeSelected(range: [Date, Date]) {
+        // Bound the range to actual available dates
+        range = this.boundRangeByItemDates(range);
+
+        // Update the Time Brush
+        this.timeBrush.selectedRange = range;
         this._internalState.selectedRange = range;
+
         this._doPBIFilter(range);
     }
 
