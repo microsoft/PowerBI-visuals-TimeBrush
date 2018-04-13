@@ -66,7 +66,7 @@ export class TimeBrush {
     private _yAxisPosition = AxisPosition.Left;
     private _legendItems: LegendItem[];
     private _legendFontSize: number;
-
+    private yDomain: [number, number] = [0, 1];
 
     /**
      * Constructor for the timebrush
@@ -104,6 +104,7 @@ export class TimeBrush {
         this.x.domain(d3.extent(this._data.map((d) => d.date)));
         const ymin = d3.min( [0, d3.min(this._data.map((d) => +d.value))]);
         const ymax = d3.max([0, d3.max(this._data.map((d) => +d.value))]);
+        this.yDomain = [ymin, ymax];
         this.y.domain([ymin , ymax]);
         this.renderElements();
     }
@@ -561,6 +562,10 @@ export class TimeBrush {
         const height = this._dimensions.height - margin.top - margin.bottom;
         const tickCount = Math.max(height / 50, 1);
         this.y
+            // Setting domain here, because `nice` alters the domain
+            // So if we don't keep setting the domain, nice will keep altering the domain such that it becomes huge
+            // You basically see this if you resize timebrush too small repeatedly
+            .domain(this.yDomain.slice(0))
             .range([height, 0 + legendHeight])
             .nice(tickCount);
 
