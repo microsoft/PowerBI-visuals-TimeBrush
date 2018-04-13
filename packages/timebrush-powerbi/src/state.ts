@@ -33,6 +33,7 @@ import {
     enumSetting,
     GradientSettings,
     settings,
+    textSetting as text,
     jsonSetting,
 } from "@essex/visual-settings";
 import { fullColors } from "@essex/visual-styling";
@@ -40,6 +41,9 @@ import { fullColors } from "@essex/visual-styling";
 import { IColorSettings, ColorMode } from "./models";
 import { YAxisSettings } from "./settings";
 import { dataSupportsDefaultColor, dataSupportsColorizedInstances, dataSupportsGradients } from "./dataConversion";
+
+// Defined in webpack
+declare var BUILD_VERSION: string;
 
 /**
  * Represents the state of the timebrush
@@ -158,12 +162,20 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
     public yAxisSettings: YAxisSettings;
 
     /**
+     * If we are being rendered horizontally
+     */
+    @text({
+      persist: false,
+      category: "General",
+      displayName: "Version",
+      description: "The version of TimeBrush",
+      compose: () => BUILD_VERSION,
+    })
+    public version?: string;
+
+    /**
      * The selected time range
      */
-    @jsonSetting({
-        category: "Selection",
-        enumerable: false,
-    })
     public selectedRange: [Date, Date];
 
     /**

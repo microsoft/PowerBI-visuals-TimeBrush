@@ -31,6 +31,8 @@ import { expect } from "chai";
 import { TimeBrush } from "@essex/timebrush";
 import TimeBrushVisual from "./TimeBrushVisual";
 
+const outOfRangeFilter = require("./test/outOfRangeFilter"); // tslint:disable-line
+
 describe("TimeBrushVisual", () => {
     let parentEle: JQuery;
     beforeEach(() => {
@@ -295,7 +297,7 @@ describe("TimeBrushVisual", () => {
             const { instance, timeBrush } = createVisual();
             const { options } = getDataWithSelection();
 
-            options.dataViews[0].metadata.objects["selection"] = {"selectedRange":JSON.stringify([new Date(1000, 10, 10), new Date(5000, 10, 10)])};
+            options.dataViews[0].metadata.objects["general"] = { filter: outOfRangeFilter };
             instance.update(options);
 
             expect(timeBrush.selectedRange).to.be.deep.equal([timeBrush.data[0].date, timeBrush.data[timeBrush.data.length - 1].date]);
@@ -309,7 +311,15 @@ describe("TimeBrushVisual", () => {
             instance.update(options);
             const date = new Date(timeBrush.data[0].date.getTime());
             date.setHours(date.getHours() - date.getTimezoneOffset() / 60); // convert to UTC so json.stringify doesn't mess up the time.
-            options.dataViews[0].metadata.objects["selection"] = {"selectedRange": JSON.stringify([date, date])};
+
+            // Make a copy of the out of range filter, and then adjust the dates
+            const filter = JSON.parse(JSON.stringify(outOfRangeFilter));
+            const dateStr = JSON.stringify(date);
+
+            filter.whereItems[0].condition.lower.value = dateStr;
+            filter.whereItems[0].condition.upper.value = dateStr;
+
+            options.dataViews[0].metadata.objects["general"] = { filter };
             instance.update(options);
 
             const expectedDate = new Date(timeBrush.data[0].date.getTime());

@@ -27,6 +27,8 @@ const webpack = require('webpack');
 const fs = require("fs");
 const ENTRY = './src/TimeBrushVisual.ts';
 const regex = path.normalize(ENTRY).replace(/\\/g, '\\\\').replace(/\./g, '\\.');
+const package = JSON.parse(fs.readFileSync("./package.json").toString())
+const isDev = process.env.NODE_ENV !== "production"
 
 const config = module.exports = {
     entry: ENTRY,
@@ -70,7 +72,8 @@ const config = module.exports = {
             'Promise': 'exports?global.Promise!es6-promise'
         }),
         new webpack.DefinePlugin({
-            'process.env.DEBUG': "\"" + (process.env.DEBUG || "") + "\""
+            'process.env.DEBUG': "\"" + (process.env.DEBUG || "") + "\"",
+            "BUILD_VERSION":  JSON.stringify(package.version + (isDev ? "+dev" : "+" + process.env.TRAVIS_BUILD_NUMBER))
         })
     ],
 };

@@ -23,10 +23,11 @@
  */
 
 declare var _: any;
-import "powerbi-visuals-tools/templates/visuals/.api/v1.7.0/PowerBI-visuals";
+import "powerbi-visuals-tools/templates/visuals/.api/v1.11.0/PowerBI-visuals";
 import { TimeBrush as TimeBrushImpl } from "@essex/timebrush";
 import { TimeBrushVisualDataItem } from "./models";
 import { default as dataConverter, coerceDate } from "./dataConversion";
+import { filter } from "../powerbi-visuals-utils";
 import {
     IDimensions,
     receiveDimensions,
@@ -264,36 +265,45 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
         let filterEndDate;
         let dataSourceChanged = hasDataChanged;
 
-        // attempt reding the filter format for the new api
-        const selectedRange = ldget(objects, "selection.selectedRange", undefined);
+        const objFilter = ldget(objects, "general.filter", undefined);
+        if (objFilter) {
 
-        // read the filter with the legacy format to support workbooks saved with the old api
-        const oldFilter = ldget(objects, "general.filter.whereItems[0].condition", undefined);
+            const appliedFilter = filter.FilterManager.restoreFilter(objFilter) as models.AdvancedFilter;
+            if (appliedFilter && appliedFilter.conditions && appliedFilter.conditions.length === 2) {
+                filterStartDate = appliedFilter.conditions[0].value;
+                filterEndDate = appliedFilter.conditions[1].value;
 
-        if (selectedRange) {
-            [filterStartDate, filterEndDate] = JSON.parse(selectedRange);
-            dataSourceChanged = false;
-        } else if (oldFilter && oldFilter.upper && oldFilter.lower) {
-            filterStartDate = (oldFilter.lower).value;
-            filterEndDate = (oldFilter.upper).value;
-
-            // Here we detect if the underlying datasource has changed
-            const colExpr = oldFilter.arg;
-            if (colExpr && colExpr.source) {
-                const filterSource = colExpr.source;
-                const source = this.timeColumn && (<any>this.timeColumn.source.expr).source;
-                if (source) {
+                if (appliedFilter.target) {
+                    const { table, column } = getFilterTargetFromColumn(this.timeColumn);
                     dataSourceChanged =
-                        filterSource.entity !== source.entity ||
-                        filterSource.schema !== source.schema;
+                        table !== appliedFilter.target.table ||
+                        column !== appliedFilter.target["column"];
+                }
+            }
+
+            // Attempt legacy load
+            if (!filterStartDate && !filterEndDate) {
+                const legacyConditions = ldget(objects, "general.filter.whereItems[0].condition", undefined);
+                if (legacyConditions && legacyConditions.upper && legacyConditions.lower) {
+                    filterStartDate = (legacyConditions.lower).value;
+                    filterEndDate = (legacyConditions.upper).value;
+
+                    // Here we detect if the underlying datasource has changed
+                    const colExpr = legacyConditions.arg;
+                    if (colExpr && colExpr.source) {
+                        const filterSource = colExpr.source;
+                        const source = this.timeColumn && (<any>this.timeColumn.source.expr).source;
+                        if (source) {
+                            dataSourceChanged =
+                                filterSource.entity !== source.entity ||
+                                filterSource.schema !== source.schema;
+                        }
+                    }
                 }
             }
         }
 
         return {dataSourceChanged, filterStartDate, filterEndDate};
-
-
-
     }
 
     /**
@@ -309,38 +319,23 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
      * Updates the PBI filter to match the given date range
      */
     private updatePBIFilter(range: Date[]) {
-        let filter: any;
+        let appliedFilter: any;
         const items = this.getRangeBoundItems(range);
+        let conditions: models.IAdvancedFilterCondition[] | null = null;
+        let action = powerbi.FilterAction.merge;
         if (items && items.length === 2) {
-            const value1 = items[0].rawDate;
-            const value2 = items[1].rawDate;
-
-            const target: models.IFilterColumnTarget = {
-                table: this.timeColumn.source.queryName.substr(0, this.timeColumn.source.queryName.indexOf(".")),
-                column: this.timeColumn.source.displayName,
-            };
-
-            filter = new models.AdvancedFilter(target, "And", [
-                { operator: "GreaterThanOrEqual", value: value1},
-                { operator: "LessThanOrEqual", value: value2},
-            ]);
-            this.host.applyJsonFilter(filter, "general", "filter");
+            conditions = [
+                { operator: "GreaterThanOrEqual", value: items[0].rawDate},
+                { operator: "LessThanOrEqual", value: items[1].rawDate},
+            ];
         } else {
-            // TODO, clear the filter here.
+            action = powerbi.FilterAction.remove;
         }
 
-        // persist selection to powerbi
-        const instance =  <powerbi.VisualObjectInstance>{
-            objectName: "selection",
-            selector: undefined,
-            properties: { selectedRange: JSON.stringify(range) },
-        };
-        const objects: powerbi.VisualObjectInstancesToPersist = { };
-        $.extend(objects, { [filter ? "merge" : "remove"]: [instance] });
-        this.host.persistProperties(objects);
+        const target = getFilterTargetFromColumn(this.timeColumn);
+        appliedFilter = new models.AdvancedFilter(target, "And", conditions);
+        this.host.applyJsonFilter(appliedFilter, "general", "filter", action);
     }
-
-
 
     /**
      * Gets the items that are nearest to the given date range
@@ -397,4 +392,15 @@ function hasColorSettingsChanged(state: TimeBrushState, newState: TimeBrushState
         return changed;
     }
     return true;
+}
+
+/**
+ * Creates a filter target for the given column
+ * @param column The column to generate a filter target for
+ */
+function getFilterTargetFromColumn(column: powerbi.DataViewCategoryColumn) {
+    return {
+        table: column.source.queryName.substr(0, column.source.queryName.indexOf(".")),
+        column: column.source.displayName,
+    };
 }

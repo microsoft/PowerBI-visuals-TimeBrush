@@ -131,7 +131,14 @@
 					"type": {
 						"filter": true
 					}
-				}
+				},
+                "version": {
+                    "displayName": "Version",
+                    "description": "The version of TimeBrush",
+                    "type": {
+                        "text": {}
+                    }
+                }
 			}
 		},
 		"dataPoint": {
