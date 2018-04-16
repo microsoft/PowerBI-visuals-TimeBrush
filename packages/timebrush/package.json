@@ -7,11 +7,10 @@
   "private": true,
   "scripts": {
     "clean": "rimraf lib",
-    "copy:css": "copyfiles -u 1 \"src/**/*.scss\" lib/",
     "karma:tdd": "karma start --tdd",
     "karma:once": "karma start",
     "docs": "typedoc --out docs --exclude **/src/**/*.spec.ts",
-    "test": "npm run clean && tsc && npm-run-all copy:css karma:once docs"
+    "test": "npm run clean && tsc && npm-run-all karma:once docs"
   },
   "author": "Microsoft",
   "license": "MIT",
