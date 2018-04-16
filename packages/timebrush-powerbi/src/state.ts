@@ -27,21 +27,23 @@ import {
     instanceColorSetting as coloredInstances,
     IColoredObject,
     colorSetting as color,
-    colors,
     numberSetting as num,
     boolSetting as bool,
-    deserializeObjectWithIdentity,
-    serializeObjectWithIdentity,
     gradientSetting as gradient,
     enumSetting,
     GradientSettings,
     settings,
-} from "@essex/pbi-base";
+    textSetting as text,
+    jsonSetting,
+} from "@essex/visual-settings";
+import { fullColors } from "@essex/visual-styling";
 
 import { IColorSettings, ColorMode } from "./models";
 import { YAxisSettings } from "./settings";
 import { dataSupportsDefaultColor, dataSupportsColorizedInstances, dataSupportsGradients } from "./dataConversion";
-const fullColors = colors.full;
+
+// Defined in webpack
+declare var BUILD_VERSION: string;
 
 /**
  * Represents the state of the timebrush
@@ -160,9 +162,21 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
     public yAxisSettings: YAxisSettings;
 
     /**
+     * If we are being rendered horizontally
+     */
+    @text({
+      persist: false,
+      category: "General",
+      displayName: "Version",
+      description: "The version of TimeBrush",
+      compose: () => BUILD_VERSION,
+    })
+    public version?: string;
+
+    /**
      * The selected time range
      */
-    public range: [Date, Date];
+    public selectedRange: [Date, Date];
 
     /**
      * A utility property to indicate if the Gradient color mode is selected
@@ -171,26 +185,4 @@ export default class TimeBrushVisualState extends HasSettings implements IColorS
         return this.colorMode === ColorMode.Gradient;
     }
 
-    /**
-     * Receives the new properties
-     * @param newProps The properties to merge into state
-     */
-    public receive(newProps?: any) {
-        if (newProps && newProps.seriesColors) {
-            newProps.seriesColors = newProps.seriesColors.map(deserializeObjectWithIdentity);
-        }
-        const base = super.receive(newProps);
-        return base;
-    }
-
-    /**
-     * Creates a JSON object version of this state, suitable for storage
-     */
-    public toJSONObject() {
-        const jsonObj = super.toJSONObject() as TimeBrushVisualState;
-        if (this.seriesColors) {
-            jsonObj.seriesColors = <any>this.seriesColors.map(serializeObjectWithIdentity);
-        }
-        return jsonObj;
-    }
 }

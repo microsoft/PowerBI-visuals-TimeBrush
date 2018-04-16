@@ -1,0 +1,49 @@
+{
+    "fromValue": {
+        "items": {
+            "d": {
+                "entity": "Documents"
+            }
+        }
+    },
+    "whereItems": [
+        {
+            "condition": {
+                "_kind": 9,
+                "arg": {
+                    "_kind": 2,
+                    "source": {
+                        "_kind": 0,
+                        "entity": "Documents",
+                        "variable": "d"
+                    },
+                    "ref": "date"
+                },
+                "lower": {
+                    "_kind": 17,
+                    "type": {
+                        "underlyingType": 519,
+                        "category": null,
+                        "temporalType": {
+                            "underlyingType": 519
+                        }
+                    },
+                    "value": "1000-02-01T16:32:42.263Z",
+                    "valueEncoded": "datetime'1000-02-01T08:32:42.263'"
+                },
+                "upper": {
+                    "_kind": 17,
+                    "type": {
+                        "underlyingType": 519,
+                        "category": null,
+                        "temporalType": {
+                            "underlyingType": 519
+                        }
+                    },
+                    "value": "5000-02-01T23:58:19.480Z",
+                    "valueEncoded": "datetime'5000-02-01T15:58:19.48'"
+                }
+            }
+        }
+    ]
+}

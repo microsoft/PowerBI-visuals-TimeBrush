@@ -28,7 +28,7 @@ import * as moment from "moment";
 import * as _ from "lodash";
 export default function dataWithSelections() {
     "use strict";
-    const clonedOptions = <powerbi.VisualUpdateOptions><any>_.cloneDeep(baseOptions);
+    const clonedOptions = <powerbi.extensibility.visual.VisualUpdateOptions><any>_.cloneDeep(baseOptions);
 
     // Wont represent correctly with JSON stringify
     const values = clonedOptions.dataViews[0].categorical.values;

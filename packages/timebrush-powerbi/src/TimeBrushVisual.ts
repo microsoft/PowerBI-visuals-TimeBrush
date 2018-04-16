@@ -23,31 +23,21 @@
  */
 
 declare var _: any;
-import { StatefulVisual } from "@essex/pbi-stateful/lib/StatefulVisual";
-
+import "powerbi-visuals-tools/templates/visuals/.api/v1.11.0/PowerBI-visuals";
 import { TimeBrush as TimeBrushImpl } from "@essex/timebrush";
 import { TimeBrushVisualDataItem } from "./models";
 import { default as dataConverter, coerceDate } from "./dataConversion";
+import { filter } from "../powerbi-visuals-utils";
 import {
-    publishChange,
-} from "@essex/pbi-stateful/lib/stateful";
-import {
-    Visual,
     IDimensions,
     receiveDimensions,
-    capabilities,
     UpdateType,
-} from "@essex/pbi-base";
-import IVisualHostServices = powerbi.IVisualHostServices;
-import VisualInitOptions = powerbi.VisualInitOptions;
-import VisualUpdateOptions = powerbi.VisualUpdateOptions;
-import VisualObjectInstance = powerbi.VisualObjectInstance;
-import EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInstancesOptions;
-import DataViewCategoryColumn = powerbi.DataViewCategoryColumn;
-import data = powerbi.data;
-import myCapabilities from "./capabilities";
-import TimeBrushState from "./state";
+    calcUpdateType,
+} from "@essex/visual-utils";
 
+import TimeBrushState from "./state";
+import * as models from "powerbi-models";
+import * as $ from "jquery";
 /* tslint:disable */
 const stringify = require("json-stringify-safe");
 const MY_CSS_MODULE = require("!css!sass!./css/TimeBrushVisual.scss");
@@ -55,9 +45,15 @@ const ldget = require("lodash/get");
 /* tslint:enable */
 
 @receiveDimensions
-export default class TimeBrush extends StatefulVisual<TimeBrushState> {
-    private host: IVisualHostServices;
-    private timeColumn: DataViewCategoryColumn;
+export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
+
+    /**
+     * The visuals element
+     */
+    protected element: JQuery;
+
+    private host: powerbi.extensibility.visual.IVisualHost;
+    private timeColumn: powerbi.DataViewCategoryColumn;
     private timeBrush: TimeBrushImpl;
     private _internalState: TimeBrushState;
     private _doPBIFilter: (range: [Date, Date]) => void;
@@ -73,6 +69,11 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
     private dataView: powerbi.DataView;
 
     /**
+     * The previous update options
+     */
+    private prevUpdateOptions: powerbi.extensibility.visual.VisualUpdateOptions;
+
+    /**
      * Returns a numerical value for a month
      */
     public static getMonthFromString(mon: string) {
@@ -82,15 +83,14 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
     /**
      * Constructor for the timebrush visual
      */
-    constructor(noCss = false, options : any, timeBrushOverride?: TimeBrushImpl) {
-        super("TimeBrush", noCss);
+    constructor(options: powerbi.extensibility.visual.VisualConstructorOptions, timeBrushOverride?: TimeBrushImpl) {
+        this.host = options.host;
 
-        // Tell visual base to not load sandboxed
-        this.loadSandboxed = false;
-        this.timeBrush = timeBrushOverride;
+        this.element = $(`<div><div class="timebrush"></div></div>`);
 
         const className = MY_CSS_MODULE && MY_CSS_MODULE.locals && MY_CSS_MODULE.locals.className;
         if (className) {
+            $(options.element).append($("<style>" + MY_CSS_MODULE + "</style>"));
             this.element.addClass(className);
         }
 
@@ -99,23 +99,24 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
         this._internalState = TimeBrushState.create<TimeBrushState>();
         this._doPBIFilter = _.debounce((range: [Date, Date]) => this.updatePBIFilter(range), 500);
 
-        options.element = $(options.element); // make this a jquery object
-        this.init(options);
-    }
+        options.element.appendChild(this.element[0]);
 
-    /** This is called once when the visual is initialially created */
-    protected onInit(options: VisualInitOptions): void {
-        this.host = options.host;
-        const dims = { width: options.viewport.width, height: options.viewport.height };
-
-        // Allow for overriding of the timebrush
-        this.timeBrush = this.timeBrush || new TimeBrushImpl(this.element.find(".timebrush"), dims);
+         // Allow for overriding of the timebrush
+        this.timeBrush = timeBrushOverride;
+        this.timeBrush = this.timeBrush || new TimeBrushImpl(this.element.find(".timebrush"));
         this.timeBrush.events.on("rangeSelected", this.onTimeRangeSelected.bind(this));
     }
 
-    /** Update is called for data updates, resizes & formatting changes */
-    protected onUpdate(options: VisualUpdateOptions, updateType: UpdateType) {
-        let dataView = this.dataView = options.dataViews && options.dataViews[0];
+
+    /**
+     * Update function for when the visual updates
+     * @param options The update options
+     * @param updateType Optional update type
+     */
+    public update(options: powerbi.extensibility.visual.VisualUpdateOptions, vm?: any, type?: UpdateType) {
+        const updateType = type !== undefined ? type : calcUpdateType(this.prevUpdateOptions, options);
+        this.prevUpdateOptions = options;
+        const dataView = this.dataView = options.dataViews && options.dataViews[0];
         if (updateType !== UpdateType.Resize) {
             const newState = this._internalState.receiveFromPBI(dataView);
 
@@ -141,7 +142,15 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
                 }
             }
 
-            this.state = newState.toJSONObject();
+            const newRange = this.boundRangeByItemDates((<any>newState.selectedRange || []).map((v: string) => new Date(v)));
+
+            newState.selectedRange = newRange;
+
+            // Update the Time Brush
+            this.timeBrush.selectedRange = newRange;
+
+            // Update the internal state
+            this._internalState = this._internalState.receive(newState);
         }
     }
 
@@ -154,86 +163,47 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
         }
     }
 
-    /**
-     * Gets a list of the custom css modules
-     */
-    protected getCustomCssModules() {
-        return [MY_CSS_MODULE];
-    }
 
     /**
      * Generates the current state of the visual
      */
-    protected generateState() {
+    public get state(): TimeBrushState {
         return this._internalState.toJSONObject();
     }
 
-    /**
-     * Called when a new state has been set on the visual
-     * @param state The state being applied
-     */
-    protected onSetState(state: TimeBrushState) {
-        if (this.timeBrush && state) {
-            // Incoming state has been json-serialized/deserialized. Dates are ISO string.
-            let newRange = (<any>state.range || []).map((v: string) => new Date(v)) as [Date, Date];
-
-            // Bound the range to actual available dates
-            newRange = <[Date, Date]>this.getRangeBoundItems(newRange).map(n => n.date);
-
-            // If the selected range is just a single item, then offset the final dates a little bit to create a brush
-            if (newRange.length === 2 && newRange[0].getTime() === newRange[1].getTime()) {
-                newRange = [new Date(newRange[0].getTime() - 1), new Date(newRange[1].getTime() + 1)];
-            }
-
-            state.range = newRange;
-
-            // Update the Time Brush
-            this.timeBrush.selectedRange = state.range;
-
-            // Update the internal state
-            this._internalState = this._internalState.receive(state);
-
-            // Update PBI if this is user-triggered
-            if (!this.isHandlingUpdate) {
-                this._doPBIFilter(this._internalState.range);
-            }
-        }
-    }
 
     public areEqual(s1: TimeBrushState, s2: TimeBrushState): boolean {
         const otherPropsAreEqual = _.isEqual(
             _.omit(s1, ["seriesColors"]),
-            _.omit(s2, ["seriesColors"])
+            _.omit(s2, ["seriesColors"]),
         );
         const seriesColorsChanged = (s1.seriesColors.length > 1 || s2.seriesColors.length > 1) &&
             !_.isEqual(s1.seriesColors, s2.seriesColors);
         return otherPropsAreEqual && !seriesColorsChanged;
     }
 
-    public getHashCode(state: TimeBrushState) {
-        return super.getHashCode(_.omit(state, ["seriesColors"]));
-    }
 
     /**
      * Enumerates the instances for the objects that appear in the power bi panel
      */
-    public enumerateObjectInstances(options: EnumerateVisualObjectInstancesOptions): VisualObjectInstance[] {
-        let instances = (super.enumerateObjectInstances(options) || []) as VisualObjectInstance[];
+    public enumerateObjectInstances(options: powerbi.EnumerateVisualObjectInstancesOptions): powerbi.VisualObjectInstanceEnumeration {
+        const instances = [] as powerbi.VisualObjectInstance[];
         return instances.concat(this._internalState.buildEnumerationObjects(options.objectName, this.dataView));
     }
 
     /**
-     * The template for the grid
+     * Adjusts the given range to the nearest items dates
+     * @param range The range to bound
      */
-    public get template() {
-        return `<div><div class="timebrush"></div></div>`;
-    }
+    private boundRangeByItemDates(range: [Date, Date]) {
+         // Bound the range to actual available dates
+         range = <[Date, Date]>this.getRangeBoundItems(range).map(n => n.date);
 
-    /**
-     * Gets the inline css used for this element
-     */
-    protected getCss(): string[] {
-        return (super.getCss() || []).concat([MY_CSS_MODULE]);
+         // If the selected range is just a single item, then offset the final dates a little bit to create a brush
+         if (range.length === 2 && range[0].getTime() === range[1].getTime()) {
+             range = [new Date(range[0].getTime() - 1), new Date(range[1].getTime() + 1)];
+         }
+         return range;
     }
 
     /**
@@ -241,8 +211,8 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
      */
     private loadDataFromPowerBI(dataView: powerbi.DataView, hasDataChanged: boolean, state: TimeBrushState) {
         if (hasDataChanged || hasColorSettingsChanged(this._internalState, state)) {
-            let dataViewCategorical = dataView.categorical;
-            let data = dataConverter(dataView, state);
+            const dataViewCategorical = dataView.categorical;
+            const data = dataConverter(dataView, this.host.createSelectionIdBuilder, state);
             this._data = data;
             // Stash this bad boy for later, so we can filter the time column
             if (dataViewCategorical && dataViewCategorical.categories) {
@@ -266,29 +236,14 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
     private loadSelectedRangeFromPowerBI(dataView: powerbi.DataView, hasDataChanged: boolean, state: TimeBrushState) {
         let startDate: Date;
         let endDate: Date;
-        const objects: any = ldget(dataView, "metadata.objects", undefined);
-        // Set the selection option
-        const oldFilter = ldget(objects, "general.filter.whereItems[0].condition", undefined) as data.SQBetweenExpr;
-        if (oldFilter) {
-            let dataSourceChanged = hasDataChanged;
 
-            // Here we detect if the underlying datasource has changed
-            const colExpr = oldFilter.arg as data.SQColumnRefExpr;
-            if (colExpr && colExpr.source) {
-                const filterSource = colExpr.source as data.SQEntityExpr;
-                const source = this.timeColumn && (<data.SQColumnRefExpr>this.timeColumn.source.expr).source as data.SQEntityExpr;
-                if (source) {
-                    dataSourceChanged =
-                        filterSource.entity !== source.entity ||
-                        filterSource.schema !== source.schema;
-                }
-            }
+        const {dataSourceChanged, filterStartDate, filterEndDate} = this.parseDatesFromPowerBi(dataView, hasDataChanged);
+
+        if (filterStartDate && filterEndDate) {
 
             // If the user indicates whether or not to clear the selection when the underlying dataset has changed
-            let updateSelection = !dataSourceChanged || !state.clearSelectionOnDataChange;
+            const updateSelection = !dataSourceChanged || !state.clearSelectionOnDataChange;
             if (updateSelection) {
-                let filterStartDate = (<data.SQConstantExpr>oldFilter.lower).value;
-                let filterEndDate = (<data.SQConstantExpr>oldFilter.upper).value;
                 startDate = coerceDate(filterStartDate);
                 endDate = coerceDate(filterEndDate);
 
@@ -297,17 +252,68 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
                     range = [startDate, endDate];
                 }
 
-                // If the selection has changed at all, then set it
                 this.timeBrush.selectedRange = range;
-                // TODO: should the state be set here?
             } else {
                 this.timeBrush.selectedRange = undefined;
             }
 
-            state.range = this.timeBrush.selectedRange;
-        } else if (dataView && !oldFilter) {
-            state.range = undefined;
+            state.selectedRange = this.timeBrush.selectedRange;
+        } else if (dataView) {
+            state.selectedRange = undefined;
         }
+    }
+
+    /**
+     * Parse the filter date range from the dataView
+     */
+    private parseDatesFromPowerBi(dataView: powerbi.DataView, hasDataChanged: boolean) {
+        const objects: any = ldget(dataView, "metadata.objects", undefined);
+        let filterStartDate;
+        let filterEndDate;
+        let dataSourceChanged = hasDataChanged;
+
+        const objFilter = ldget(objects, "general.filter", undefined);
+        if (objFilter) {
+
+            const appliedFilter = filter.FilterManager.restoreFilter(objFilter) as models.AdvancedFilter;
+            if (appliedFilter && appliedFilter.conditions && appliedFilter.conditions.length === 2) {
+                filterStartDate = appliedFilter.conditions[0].value;
+                filterEndDate = appliedFilter.conditions[1].value;
+
+                // Sometimes the appliedFilter.target is null, so lets just assume that the dataSource didn't change.
+                dataSourceChanged = false;
+
+                if (appliedFilter.target) {
+                    const { table, column } = getFilterTargetFromColumn(this.timeColumn);
+                    dataSourceChanged =
+                        table !== appliedFilter.target.table ||
+                        column !== appliedFilter.target["column"];
+                }
+            }
+
+            // Attempt legacy load
+            if (!filterStartDate && !filterEndDate) {
+                const legacyConditions = ldget(objects, "general.filter.whereItems[0].condition", undefined);
+                if (legacyConditions && legacyConditions.upper && legacyConditions.lower) {
+                    filterStartDate = (legacyConditions.lower).value;
+                    filterEndDate = (legacyConditions.upper).value;
+
+                    // Here we detect if the underlying datasource has changed
+                    const colExpr = legacyConditions.arg;
+                    if (colExpr && colExpr.source) {
+                        const filterSource = colExpr.source;
+                        const source = this.timeColumn && (<any>this.timeColumn.source.expr).source;
+                        if (source) {
+                            dataSourceChanged =
+                                filterSource.entity !== source.entity ||
+                                filterSource.schema !== source.schema;
+                        }
+                    }
+                }
+            }
+        }
+
+        return {dataSourceChanged, filterStartDate, filterEndDate};
     }
 
     /**
@@ -315,14 +321,13 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
      * @param range undefined means no range, otherwise should be [startDate, endDate]
      */
     private onTimeRangeSelected(range: [Date, Date]) {
-        this.state = this._internalState.receive({ range }).toJSONObject();
-        let label: string;
-        if (range && range.length === 2) {
-            label = `Select range ${range[0].toLocaleDateString()} - ${range[1].toLocaleDateString()}`;
-        } else {
-            label = "Clear selection";
-        }
-        publishChange(this, label, this.state);
+        // Bound the range to actual available dates
+        range = this.boundRangeByItemDates(range);
+
+        // Update the Time Brush
+        this.timeBrush.selectedRange = range;
+        this._internalState.selectedRange = range;
+
         this._doPBIFilter(range);
     }
 
@@ -330,48 +335,22 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
      * Updates the PBI filter to match the given date range
      */
     private updatePBIFilter(range: Date[]) {
-        let filter: any;
+        let appliedFilter: any;
         const items = this.getRangeBoundItems(range);
+        let conditions: models.IAdvancedFilterCondition[] | null = null;
+        let action = powerbi.FilterAction.merge;
         if (items && items.length === 2) {
-            const sourceType = this.timeColumn.source.type;
-            let builderType = "text";
-            if (sourceType.extendedType === powerbi.ValueType.fromDescriptor({ integer: true }).extendedType) {
-                builderType = "integer";
-            } else if (sourceType.extendedType === powerbi.ValueType.fromDescriptor({ numeric: true }).extendedType) {
-                builderType = "decimal";
-            } else if (sourceType.extendedType === powerbi.ValueType.fromDescriptor({ dateTime: true }).extendedType) {
-                builderType = "dateTime";
-            }
-
-            let value1 = items[0].rawDate;
-            let value2 = items[1].rawDate;
-            if (builderType === "text") {
-                value1 = value1 + "";
-                value2 = value2 + "";
-            }
-
-            filter = data.SemanticFilter.fromSQExpr(
-                data.SQExprBuilder.between(
-                    <any>this.timeColumn.identityFields[0],
-                    data.SQExprBuilder[builderType](value1),
-                    data.SQExprBuilder[builderType](value2))
-            );
-        }
-        let instance =  <powerbi.VisualObjectInstance>{
-            objectName: "general",
-            selector: undefined,
-            properties: { filter },
-        };
-
-        let objects: powerbi.VisualObjectInstancesToPersist = { };
-        if (filter) {
-            $.extend(objects, { merge: [instance] });
+            conditions = [
+                { operator: "GreaterThanOrEqual", value: items[0].rawDate},
+                { operator: "LessThanOrEqual", value: items[1].rawDate},
+            ];
         } else {
-            $.extend(objects, { remove: [instance] });
+            action = powerbi.FilterAction.remove;
         }
 
-        this.host.persistProperties(objects);
-        this.host.onSelect(<any>{ data: [] }); // hack
+        const target = getFilterTargetFromColumn(this.timeColumn);
+        appliedFilter = new models.AdvancedFilter(target, "And", conditions);
+        this.host.applyJsonFilter(appliedFilter, "general", "filter", action);
     }
 
     /**
@@ -412,7 +391,7 @@ export default class TimeBrush extends StatefulVisual<TimeBrushState> {
 function hasColorSettingsChanged(state: TimeBrushState, newState: TimeBrushState) {
     "use strict";
     if (state && newState) {
-        let changed = state.useGradient !== newState.useGradient ||
+        const changed = state.useGradient !== newState.useGradient ||
             state.gradient.endColor !== newState.gradient.endColor ||
             state.defaultBarColor !== newState.defaultBarColor ||
             state.gradient.startColor !== newState.gradient.startColor ||
@@ -429,4 +408,15 @@ function hasColorSettingsChanged(state: TimeBrushState, newState: TimeBrushState
         return changed;
     }
     return true;
+}
+
+/**
+ * Creates a filter target for the given column
+ * @param column The column to generate a filter target for
+ */
+function getFilterTargetFromColumn(column: powerbi.DataViewCategoryColumn) {
+    return {
+        table: column.source.queryName.substr(0, column.source.queryName.indexOf(".")),
+        column: column.source.displayName,
+    };
 }

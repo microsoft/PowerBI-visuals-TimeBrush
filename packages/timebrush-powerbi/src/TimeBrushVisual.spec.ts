@@ -26,10 +26,12 @@ import * as $ from "jquery";
 import simpleData from "./test/simpleData";
 import dataWithBucketsAndSettings from "./test/dataWithBucketsAndSettings";
 import dataWithSelection from "./test/dataWithSelections";
-import { Utils as SpecUtils } from "@essex/pbi-base/dist/spec/visualHelpers";
+import { Utils as SpecUtils } from "@essex/visual-testing-tools";
 import { expect } from "chai";
 import { TimeBrush } from "@essex/timebrush";
 import TimeBrushVisual from "./TimeBrushVisual";
+
+const outOfRangeFilter = require("./test/outOfRangeFilter"); // tslint:disable-line
 
 describe("TimeBrushVisual", () => {
     let parentEle: JQuery;
@@ -46,9 +48,9 @@ describe("TimeBrushVisual", () => {
 
     let createVisual = () => {
         const timeBrushEle = $("<div>");
-        let initOptions = SpecUtils.createFakeInitOptions();
+        let initOptions = SpecUtils.createFakeConstructorOptions();
         let timeBrush = new TimeBrush(timeBrushEle);
-        let instance = new TimeBrushVisual(true, initOptions, <any>timeBrush);
+        let instance = new TimeBrushVisual(initOptions, <any>timeBrush);
         instance["throwErrors"] = true;
         
         parentEle.append(initOptions.element);
@@ -172,12 +174,6 @@ describe("TimeBrushVisual", () => {
                     expect(result).to.be.deep.equal(expected.map(n => n.valueSegments.map(m => m.color)));
                 });
 
-                it("should load the gradient colors correctly", () => {
-                    const { instance, timeBrush, settings, expected } = createInstanceAndPerformComplexUpdate();
-                    const result = timeBrush.data.map(n => n.valueSegments.map(m => m.color));
-                    expect(result).to.be.deep.equal(expected.map(n => n.valueSegments.map(m => m.color)));
-                });
-
                 it("should load the show y axis setting properly", () => {
                     const { instance, timeBrush, settings, expected } = createInstanceAndPerformComplexUpdate();
                     expect(timeBrush.showYAxis).to.be.equal(settings["y-Axis"].showYAxis);
@@ -293,7 +289,7 @@ describe("TimeBrushVisual", () => {
             expect(timeBrush.selectedRange).to.be.deep.equal(selectedRange);
 
             // Make sure the state was not cleared
-            expect(instance.state.range).to.not.be.empty;
+            expect(instance.state.selectedRange).to.not.be.empty;
         });
 
         // Now that I think of it, why??
@@ -301,11 +297,8 @@ describe("TimeBrushVisual", () => {
             const { instance, timeBrush } = createVisual();
             const { options } = getDataWithSelection();
 
+            options.dataViews[0].metadata.objects["general"] = { filter: outOfRangeFilter };
             instance.update(options);
-
-            instance.state = <any>{
-                range: [new Date(1000, 10, 10), new Date(12000, 10, 10)],
-            };
 
             expect(timeBrush.selectedRange).to.be.deep.equal([timeBrush.data[0].date, timeBrush.data[timeBrush.data.length - 1].date]);
         });
@@ -316,15 +309,21 @@ describe("TimeBrushVisual", () => {
             const { options } = getDataWithSelection();
 
             instance.update(options);
+            const date = new Date(timeBrush.data[0].date.getTime());
+            date.setHours(date.getHours() - date.getTimezoneOffset() / 60); // convert to UTC so json.stringify doesn't mess up the time.
 
-            const firstItem = timeBrush.data[0];
-            const date = new Date(firstItem.date.getTime());
+            // Make a copy of the out of range filter, and then adjust the dates
+            const filter = JSON.parse(JSON.stringify(outOfRangeFilter));
+            const dateStr = JSON.stringify(date);
 
-            instance.state = <any>{
-                range: [date, date],
-            };
+            filter.whereItems[0].condition.lower.value = dateStr;
+            filter.whereItems[0].condition.upper.value = dateStr;
 
-            expect(timeBrush.selectedRange).to.be.deep.equal([new Date(date.getTime() - 1), new Date(date.getTime() + 1)]);
+            options.dataViews[0].metadata.objects["general"] = { filter };
+            instance.update(options);
+
+            const expectedDate = new Date(timeBrush.data[0].date.getTime());
+            expect(timeBrush.selectedRange).to.be.deep.equal([new Date(expectedDate.getTime() - 1), new Date(expectedDate.getTime() + 1)]);
         });
 
         it("should clear the selection if the underlying datasource changes, and there was something already selected in the timebrush", () => { // tslint:disable-line
@@ -336,7 +335,7 @@ describe("TimeBrushVisual", () => {
             instance.update(simpleDataUpdate.options);
 
             // Here is the initial range
-            instance.state.range = timeBrush.selectedRange = [simpleDataUpdate.expected[0].date, simpleDataUpdate.expected[2].date];
+            instance.state.selectedRange = timeBrush.selectedRange = [simpleDataUpdate.expected[0].date, simpleDataUpdate.expected[2].date];
 
             // Change the dataset
             instance.update(changedDatasetOptions);
@@ -354,7 +353,7 @@ describe("TimeBrushVisual", () => {
             instance.update(dataSetWithSelection.options);
 
             // Make sure stuff is selected
-            expect(instance.state.range).to.not.be.empty;
+            expect(instance.state.selectedRange).to.not.be.empty;
 
             // Change the dataset with no selection, and an entirely different column
             instance.update(simpleDataUpdate.options);
@@ -363,7 +362,7 @@ describe("TimeBrushVisual", () => {
             expect(timeBrush.selectedRange).to.be.empty;
 
             // Make sure the state was cleared
-            expect(instance.state.range).to.be.empty;
+            expect(instance.state.selectedRange).to.be.empty;
         });
 
         it("should clear the selection if the underlying datasource changes", () => {
@@ -396,7 +395,7 @@ describe("TimeBrushVisual", () => {
             expect(timeBrush.selectedRange).to.not.be.empty;
 
             // Make sure the state was not cleared
-            expect(instance.state.range).to.not.be.empty;
+            expect(instance.state.selectedRange).to.not.be.empty;
         });
     });
 });

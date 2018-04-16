@@ -23,9 +23,8 @@
  */
 
 import DataView = powerbi.DataView;
-import SelectionId = powerbi.visuals.SelectionId;
 import { TimeBrushVisualDataItem, IColorSettings } from "./models";
-import { calculateSegments, get } from "@essex/pbi-base";
+import { calculateSegments, get } from "@essex/visual-utils";
 import * as moment from "moment";
 const ldget = require("lodash/get"); // tslint:disable-line
 
@@ -44,10 +43,13 @@ const MOMENT_FORMATS = [
     "DD",
 ];
 
-export default function converter(dataView: DataView, settings?: IConversionSettings): TimeBrushVisualDataItem[] {
+export default function converter(
+    dataView: DataView,
+    selectionIdBuilderFactory: () => powerbi.visuals.ISelectionIdBuilder,
+    settings?: IConversionSettings): TimeBrushVisualDataItem[] {
     "use strict";
     let items: TimeBrushVisualDataItem[];
-    let dataViewCategorical = dataView && dataView.categorical;
+    const dataViewCategorical = dataView && dataView.categorical;
 
     // Must be two columns: times and values
     if (dataViewCategorical && dataViewCategorical.categories && dataViewCategorical.values && dataViewCategorical.values.length) {
@@ -73,9 +75,10 @@ export default function converter(dataView: DataView, settings?: IConversionSett
                     date,
                     segmentInfo,
                     i,
-                    dataViewCategorical.categories[0].identity[i],
+                    dataViewCategorical.categories[0],
                     values,
-                    reverseBars !== false);
+                    reverseBars !== false,
+                    selectionIdBuilderFactory());
             }).filter(n => !!n);
         }
     }
@@ -87,13 +90,14 @@ export default function converter(dataView: DataView, settings?: IConversionSett
  */
 export function convertItem(
     date: any,
-    segmentInfo: { name: string; color: any; }[],
+    segmentInfo: Array<{ name: string; color: any; }>,
     valueIdx: number,
-    categoryIdentity: powerbi.DataViewScopeIdentity,
+    categoryIdentity: powerbi.DataViewCategoryColumn,
     values: powerbi.DataViewValueColumns,
-    reverseBars: boolean) {
+    reverseBars: boolean,
+    selectionIdBuilder: powerbi.visuals.ISelectionIdBuilder) {
     "use strict";
-    let coercedDate = coerceDate(date);
+    const coercedDate = coerceDate(date);
     let total = 0;
     segmentInfo.forEach((n, j) => {
         total += (values[j].values[valueIdx] as number || 0);
@@ -110,7 +114,7 @@ export function convertItem(
         date: coercedDate,
         rawDate: date,
         value: total,
-        identity: SelectionId.createWithId(categoryIdentity),
+        identity: (selectionIdBuilder) ? selectionIdBuilder.withCategory(categoryIdentity, valueIdx).createSelectionId() : -1,
         valueSegments,
     } as TimeBrushVisualDataItem : null;
 }

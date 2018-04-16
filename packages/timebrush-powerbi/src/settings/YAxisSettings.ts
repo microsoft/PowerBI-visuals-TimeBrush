@@ -1,4 +1,4 @@
-import { boolSetting as bool, enumSetting } from "@essex/pbi-base";
+import { boolSetting as bool, enumSetting } from "@essex/visual-settings";
 import { AxisPosition } from "@essex/timebrush";
 
 /**

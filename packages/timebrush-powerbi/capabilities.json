@@ -129,17 +129,16 @@
 			"properties": {
 				"filter": {
 					"type": {
-						"filter": {}
-					},
-					"rule": {
-						"output": {
-							"property": "selected",
-							"selector": [
-								"Time"
-							]
-						}
+						"filter": true
 					}
-				}
+				},
+                "version": {
+                    "displayName": "Version",
+                    "description": "The version of TimeBrush",
+                    "type": {
+                        "text": {}
+                    }
+                }
 			}
 		},
 		"dataPoint": {
@@ -230,6 +229,11 @@
 					"description": "Setting this to true will clear the selection after the data is changed",
 					"type": {
 						"bool": true
+					}
+				},
+				"selectedRange": {
+					"type" : {
+						"text": true
 					}
 				}
 			}

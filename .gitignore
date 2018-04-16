@@ -12,6 +12,7 @@ dump
 
 # Build Artifacts
 build/
+lib/
 dist/
 docs/
 *.js

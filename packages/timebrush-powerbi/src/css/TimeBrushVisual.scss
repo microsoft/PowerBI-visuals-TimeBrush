@@ -22,17 +22,18 @@
  * SOFTWARE.
  */
 
-@import "../../node_modules/@essex/timebrush/css/Base";
-@import "../../node_modules/@essex/pbi-base/css/main";
-@import "../../node_modules/@essex/pbi-base/css/variables";
-
-:local(.className) {
-  svg {
-    @extend %regularFont;
-    @extend %smallFontSize;
-  }
-
-  .bars {
-    fill: $dataColor1;
-  }
-}
+ @import "../../node_modules/@essex/visual-styling/lib/scss/main";
+ @import "../../node_modules/@essex/visual-styling/lib/scss/variables";
+ @import "../../node_modules/@essex/timebrush/css/Base";
+ 
+ :local(.className) {
+   svg {
+     @extend %regularFont;
+     @extend %smallFontSize;
+   }
+ 
+   .bars {
+     fill: $dataColor1;
+   }
+ }
+ 

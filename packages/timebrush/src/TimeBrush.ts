@@ -66,7 +66,7 @@ export class TimeBrush {
     private _yAxisPosition = AxisPosition.Left;
     private _legendItems: LegendItem[];
     private _legendFontSize: number;
-
+    private yDomain: [number, number] = [0, 1];
 
     /**
      * Constructor for the timebrush
@@ -102,8 +102,9 @@ export class TimeBrush {
         this.element.toggle(this._data.length > 0);
 
         this.x.domain(d3.extent(this._data.map((d) => d.date)));
-        let ymin = d3.min( [0, d3.min(this._data.map((d) => +d.value))]);
-        let ymax = d3.max([0, d3.max(this._data.map((d) => +d.value))]);
+        const ymin = d3.min( [0, d3.min(this._data.map((d) => +d.value))]);
+        const ymax = d3.max([0, d3.max(this._data.map((d) => +d.value))]);
+        this.yDomain = [ymin, ymax];
         this.y.domain([ymin , ymax]);
         this.renderElements();
     }
@@ -111,29 +112,33 @@ export class TimeBrush {
     /**
      * Gets the array of legend items
      */
-    public get legendItems(){
+    public get legendItems() {
         return this._legendItems;
     }
 
     /**
      * Sets the array of legend items
      */
-     public set legendItems(lengedItems: LegendItem[]){
+     public set legendItems(lengedItems: LegendItem[]) {
          this._legendItems = lengedItems;
+         this.renderElements();
      }
 
      /**
       * Get the legend font size
       */
-     public get legendFontSize(){
+     public get legendFontSize() {
          return this._legendFontSize;
      }
 
      /**
       * Sets the legend font size.
       */
-     public set legendFontSize(size: number){
-         this._legendFontSize = size;
+     public set legendFontSize(size: number) {
+         if (this._legendFontSize !== size) {
+             this._legendFontSize = size;
+             this.renderElements();
+         }
      }
 
     /**
@@ -145,15 +150,9 @@ export class TimeBrush {
     }
 
     /**
-     * Gets the dimensions of this timebrush
-     */
-    public get dimensions() {
-        return this._dimensions;
-    }
-
-    /**
      * Gets whether or not the timebrush is showing the Y Axis
      */
+    private _showYAxis = false; // tslint:disable-line
     public get showYAxis() {
         return this._showYAxis;
     }
@@ -161,7 +160,6 @@ export class TimeBrush {
     /**
      * Sets whether or not to show the Y Axis
      */
-    private _showYAxis = false; // tslint:disable-line
     public set showYAxis(value: boolean) {
         value = !!value;
         if (this._showYAxis !== value) {
@@ -173,6 +171,7 @@ export class TimeBrush {
     /**
      * Gets whether or not the timebrush is showing the Y Axis reference lines
      */
+    private _showYAxisReferenceLines = true; // tslint:disable-line
     public get showYAxisReferenceLines() {
         return this._showYAxisReferenceLines;
     }
@@ -180,7 +179,6 @@ export class TimeBrush {
     /**
      * Sets whether or not to show the Y Axis reference lines
      */
-    private _showYAxisReferenceLines = true; // tslint:disable-line
     public set showYAxisReferenceLines(value: boolean) {
         value = !!value;
         if (this._showYAxisReferenceLines !== value) {
@@ -192,6 +190,7 @@ export class TimeBrush {
     /**
      * Gets the color used to render reference lines
      */
+    private _yAxisReferenceLineColor = "#ddd"; // tslint:disable-line
     public get yAxisReferenceLineColor() {
         return this._yAxisReferenceLineColor;
     }
@@ -199,7 +198,6 @@ export class TimeBrush {
     /**
      * Sets the y axis reference line colors
      */
-    private _yAxisReferenceLineColor = "#ddd"; // tslint:disable-line
     public set yAxisReferenceLineColor(value: string) {
         value = value || "#ddd";
         if (this._yAxisReferenceLineColor !== value) {
@@ -236,6 +234,13 @@ export class TimeBrush {
     public set barWidth(value: number) {
         this._barWidth = value || 2;
         this.renderElements();
+    }
+
+    /**
+     * Gets the dimensions of this timebrush
+     */
+    public get dimensions() {
+        return this._dimensions;
     }
 
     /**
@@ -327,7 +332,7 @@ export class TimeBrush {
         this.yOrigin = this.context.append("line")
             .attr("class", "y-origin-line");
 
-        let brushed = _.debounce(() => {
+        const brushed = _.debounce(() => {
             const dateRange: any[] = this.brush.empty() ? [] : this.brush.extent();
             this._range = <any>dateRange;
             this.events.raiseEvent("rangeSelected", dateRange);
@@ -340,17 +345,17 @@ export class TimeBrush {
      * Resizes all the elements in the graph
      */
     private renderElements() {
-        let margin = { top: 0, bottom: 20, left: 20, right: 20 };
+        const margin = { top: 0, bottom: 20, left: 20, right: 20 };
 
         // Renders the rest of the elements within the chart (minus the y axis)
         const renderRest = () => {
             // Important that these two occur here, cause the margin gets tweaked by renderYAxis
-            let width = this._dimensions.width - margin.left - margin.right;
-            let height = this._dimensions.height - margin.top - margin.bottom;
+            const width = this._dimensions.width - margin.left - margin.right;
+            const height = this._dimensions.height - margin.top - margin.bottom;
 
             // adjust the x range to account for y axis labels
-            let xmin = (this.showYAxis && this.yAxisPosition === AxisPosition.Left) ? margin.left : 0;
-            let xmax: any = (this.showYAxis && this.yAxisPosition === AxisPosition.Right) ? width - margin.right : width;
+            const xmin = (this.showYAxis && this.yAxisPosition === AxisPosition.Left) ? margin.left : 0;
+            const xmax: any = (this.showYAxis && this.yAxisPosition === AxisPosition.Right) ? width - margin.right : width;
             this.x.range([xmin, xmax]);
 
 
@@ -378,7 +383,7 @@ export class TimeBrush {
     private renderValueBars(height: number) {
         if (this.bars && this._data) {
             const barWidth = this.barWidth || 2;
-            let tmp = this.bars
+            const tmp = this.bars
                 .selectAll("rect")
                 .data(this._data);
 
@@ -387,9 +392,9 @@ export class TimeBrush {
 
             tmp
                 .attr("transform", (d, i) => {
-                    let rectHeight = this.y(0) - this.y(d.value);
-                    let x = this.x(d.date) || 0;
-                    let yPos = d.value >= 0 ? this.y(0) - rectHeight : this.y(0);
+                    const rectHeight = this.y(0) - this.y(d.value);
+                    const x = this.x(d.date) || 0;
+                    const yPos = d.value >= 0 ? this.y(0) - rectHeight : this.y(0);
                     return `translate(${(x - (barWidth / 2))},${yPos})`;
 
                 })
@@ -425,7 +430,7 @@ export class TimeBrush {
             gradients
                 .attr("id", (d, i) => "rect_gradient_" + i);
 
-            const stops = gradients.selectAll("stop")
+            const stopSel = gradients.selectAll("stop")
                 .data((d) => {
                     const stops: any[] = [];
                     const segments = (d.value >= 0) ? d.valueSegments : d.valueSegments.slice().reverse();
@@ -447,13 +452,13 @@ export class TimeBrush {
                     });
                     return stops;
                 });
-            stops.enter().append("stop");
-            stops
+            stopSel.enter().append("stop");
+            stopSel
                 .attr({
-                    offset: (d) => d.offset,
+                    "offset": (d) => d.offset,
                     "stop-color": (d) => d.color,
                 });
-            stops.exit().remove();
+            stopSel.exit().remove();
         }
     }
 
@@ -522,7 +527,7 @@ export class TimeBrush {
             legendElements.append("text")
                 .attr("x", this._legendFontSize + 2)
                 .attr("y", this._legendFontSize )
-                .text(function (d, i) {
+                .text(function(d, i) { // tslint:disable-line
                     return (maxLength > 0 && d.name && d.name.length > maxLength) ? d.name.slice(0, maxLength) + "..." : d.name;
                 })
                 .style("font-size", this._legendFontSize);
@@ -531,8 +536,8 @@ export class TimeBrush {
             let xoffset = 0;
             const padding = 10;
             legendElements
-                .attr("transform", function (d, i) {
-                    let translate = (i === 0) ?  "translate(0,0)" : "translate(" + (xoffset) + ",0)";
+                .attr("transform", function(d, i) {
+                    const translate = (i === 0) ?  "translate(0,0)" : "translate(" + (xoffset) + ",0)";
                     xoffset +=  this.getBBox().width + padding;
                     return translate;
                 });
@@ -551,16 +556,20 @@ export class TimeBrush {
         const actualWidth = actualDims.right - actualDims.left;
 
         // Default to 1 if we have no data
-        let scale = actualWidth > 0 && this.dimensions.width > 0 ? this.dimensions.width / actualWidth : 1;
+        const scale = actualWidth > 0 && this.dimensions.width > 0 ? this.dimensions.width / actualWidth : 1;
 
         // Add some padding for the y axis labels and legend
         const legendHeight = this.legendHeight();
         margin.top = (this.showYAxis || legendHeight > 0) ? 10 * scale : 0;
 
         // Update the y axis scale
-        let height = this._dimensions.height - margin.top - margin.bottom;
+        const height = this._dimensions.height - margin.top - margin.bottom;
         const tickCount = Math.max(height / 50, 1);
         this.y
+            // Setting domain here, because `nice` alters the domain
+            // So if we don't keep setting the domain, nice will keep altering the domain such that it becomes huge
+            // You basically see this if you resize timebrush too small repeatedly
+            .domain(this.yDomain.slice(0))
             .range([height, 0 + legendHeight])
             .nice(tickCount);
 
@@ -579,16 +588,16 @@ export class TimeBrush {
                     // Do some calculations to know how much to strink the chart area
                     sel.selectAll("text").each(function() {
                         const rect = (<Element>this).getBoundingClientRect();
-                        const width = rect.right - rect.left;
-                        if (width > yAxisWidth) {
-                            yAxisWidth = width;
+                        const textWidth = rect.right - rect.left;
+                        if (textWidth > yAxisWidth) {
+                            yAxisWidth = textWidth;
                         }
                     });
 
                     yAxisWidth *= scale;
 
                     margin[orientation] = axisPadding + yAxisWidth;
-                    let width = this._dimensions.width - margin.left - margin.right;
+                    const width = this._dimensions.width - margin.left - margin.right;
 
                     // Right now we don't need to see the domain line (the vertical line next to the Y axis labels)
                     sel.select(".domain").remove();
@@ -642,11 +651,11 @@ export class TimeBrush {
             .call((dateTicks) => {
                 setTimeout(() => {
                     // Removes all overlapping/offscreen thangies
-                    let svgInfo = (this.svg.node() as Element).getBoundingClientRect();
+                    const svgInfo = (this.svg.node() as Element).getBoundingClientRect();
                     for (let j = 0; j < dateTicks[0].length; j++) {
-                        let c = dateTicks[0][j] as Element,
-                            n = dateTicks[0][j + 1] as Element;
-                        let cRect = c && c.getBoundingClientRect();
+                        const c = dateTicks[0][j] as Element;
+                        let n = dateTicks[0][j + 1] as Element;
+                        const cRect = c && c.getBoundingClientRect();
                         let nRect = n && n.getBoundingClientRect();
                         if (cRect &&
                             (Math.floor(cRect.right) > Math.ceil(svgInfo.right) ||
@@ -683,7 +692,7 @@ export class TimeBrush {
         const actualWidth = actualDims.right - actualDims.left;
 
         // Default to 1 if we have no data
-        let scale = actualWidth > 0 && this.dimensions.width > 0 ? this.dimensions.width / actualWidth : 1;
+        const scale = actualWidth > 0 && this.dimensions.width > 0 ? this.dimensions.width / actualWidth : 1;
 
         // This translates the scaling done by PBI from css scaling to svg scaling.
         const svgWidth = width + margin.left + margin.right;

@@ -36,7 +36,7 @@ module.exports = function (wallaby) {
       // {pattern: 'lib/jquery.js', instrument: false},
       {pattern: 'src/**/*.{ts,scss,json}', load: false},
       {pattern: 'base/**/*.{ts,scss,json}', load: false},
-      {pattern: 'node_modules/@essex/pbi-base/css/*.{scss}', load: false},
+      {pattern: 'node_modules/@essex/visual-styling/css/*.{scss}', load: false},
       {pattern: '!src/**/*.spec.ts', load: false}
     ],
 
