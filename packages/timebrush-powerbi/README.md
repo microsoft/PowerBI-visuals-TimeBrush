@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/Microsoft/PowerBI-visuals-TimeBrush/tree/master.svg?style=svg)](https://circleci.com/gh/Microsoft/PowerBI-visuals-TimeBrush/tree/master)
+[![Build Status](https://travis-ci.org/Microsoft/PowerBI-visuals-TimeBrush.svg?branch=develop)](https://travis-ci.org/Microsoft/PowerBI-visuals-TimeBrush)
 
 # Time Brush -- PowerBI
 
