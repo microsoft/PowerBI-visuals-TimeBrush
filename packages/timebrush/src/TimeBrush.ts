@@ -121,6 +121,7 @@ export class TimeBrush {
      */
      public set legendItems(lengedItems: LegendItem[]) {
          this._legendItems = lengedItems;
+         this.renderElements();
      }
 
      /**
@@ -134,7 +135,10 @@ export class TimeBrush {
       * Sets the legend font size.
       */
      public set legendFontSize(size: number) {
-         this._legendFontSize = size;
+         if (this._legendFontSize !== size) {
+             this._legendFontSize = size;
+             this.renderElements();
+         }
      }
 
     /**
