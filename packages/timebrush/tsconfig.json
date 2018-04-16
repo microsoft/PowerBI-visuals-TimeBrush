@@ -7,8 +7,11 @@
     "declaration": true,
     "noImplicitAny": true,
     "suppressImplicitAnyIndexErrors": true,
-    "outDir": "dist"
+    "outDir": "lib"
   },
+  "files": [
+    "src/index.ts"
+  ],
   "compileOnSave": false,
   "exclude": [
     "power-bi",

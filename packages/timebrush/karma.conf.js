@@ -35,7 +35,7 @@ module.exports = config => {
     files: [ 'src/**/*.spec.ts' ],
     exclude: [],
     preprocessors: {
-      'src/**/*.spec.ts': ['webpack']
+      'src/**/*.spec.ts': ['webpack', 'sourcemap']
     },
     webpack: webpackConf,
     webpackMiddleware: {

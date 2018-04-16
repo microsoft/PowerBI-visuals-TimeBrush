@@ -23,12 +23,12 @@
  */
 
 @import "./Base";
-@import "../../base/css/main";
+@import "./main";
 
 :local(.className) {
   svg {
-      @extend %regularFont;
-      @extend %smallFontSize;
+      @extend %regularFont !optional;
+      @extend %smallFontSize !optional;
   }
 
   .bars {
