@@ -13,4 +13,4 @@ Time Brush lets you filter a time-based dataset by directly dragging or brushing
 * Install [yarn](https://yarnpkg.com/lang/en/docs/install)
 * Run `yarn` on the project directory, which will install all the dependencies
 * Run `yarn test` which will lint, test, and compile the `timebrush` and `timebrush-powerbi` packages.
-    * Compiling `timebrush-powerbi` will also create a `.pbiviz` file in the `packages/timebrush/powerbi/dist` directory, which can be imported directly in [Power BI](https://app.powerbi.com/)
+    * Compiling `timebrush-powerbi` will also create a `.pbiviz` file in the `packages/timebrush-powerbi/dist` directory, which can be imported directly in [Power BI](https://app.powerbi.com/)
