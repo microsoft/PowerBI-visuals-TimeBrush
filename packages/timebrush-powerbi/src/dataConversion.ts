@@ -24,7 +24,7 @@
 
 import DataView = powerbi.DataView;
 import { TimeBrushVisualDataItem, IColorSettings } from "./models";
-import { calculateSegments, get } from "@essex/visual-utils";
+import { calculateSegments } from "@essex/visual-utils";
 import * as moment from "moment";
 import get = require("lodash.get");
 
