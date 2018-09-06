@@ -21,8 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
-declare var _: any;
 import "powerbi-visuals-tools/templates/visuals/.api/v1.11.0/PowerBI-visuals";
 import { TimeBrush as TimeBrushImpl } from "@essex/timebrush";
 import { TimeBrushVisualDataItem } from "./models";
@@ -38,10 +36,13 @@ import {
 import TimeBrushState from "./state";
 import * as models from "powerbi-models";
 import * as $ from "jquery";
+import get = require("lodash.get");
+import debounce = require("lodash.debounce");
+import omit = require("lodash.omit");
+import isEqual = require("lodash.isequal");
 /* tslint:disable */
 const stringify = require("json-stringify-safe");
 const MY_CSS_MODULE = require("!css!sass!./css/TimeBrushVisual.scss");
-const ldget = require("lodash/get");
 /* tslint:enable */
 
 @receiveDimensions
@@ -97,7 +98,7 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
         // HACK: PowerBI Swallows these events unless we prevent propagation upwards
         this.element.on("mousedown click pointerdown touchstart touchdown", (e: any) => e.stopPropagation());
         this._internalState = TimeBrushState.create<TimeBrushState>();
-        this._doPBIFilter = _.debounce((range: [Date, Date]) => this.updatePBIFilter(range), 500);
+        this._doPBIFilter = debounce((range: [Date, Date]) => this.updatePBIFilter(range), 500);
 
         options.element.appendChild(this.element[0]);
 
@@ -135,7 +136,7 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
                 if (newState.barWidth !== this._internalState.barWidth) {
                     this.timeBrush.barWidth = newState.barWidth;
                 }
-                if (!_.isEqual(newState.yAxisSettings, this._internalState.yAxisSettings)) {
+                if (!isEqual(newState.yAxisSettings, this._internalState.yAxisSettings)) {
                     this.timeBrush.showYAxis = newState.yAxisSettings.show;
                     this.timeBrush.yAxisPosition = newState.yAxisSettings.yAxisPosition;
                     this.timeBrush.showYAxisReferenceLines = newState.yAxisSettings.showReferenceLines;
@@ -173,12 +174,12 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
 
 
     public areEqual(s1: TimeBrushState, s2: TimeBrushState): boolean {
-        const otherPropsAreEqual = _.isEqual(
-            _.omit(s1, ["seriesColors"]),
-            _.omit(s2, ["seriesColors"]),
+        const otherPropsAreEqual = isEqual(
+            omit(s1, ["seriesColors"]),
+            omit(s2, ["seriesColors"]),
         );
         const seriesColorsChanged = (s1.seriesColors.length > 1 || s2.seriesColors.length > 1) &&
-            !_.isEqual(s1.seriesColors, s2.seriesColors);
+            !isEqual(s1.seriesColors, s2.seriesColors);
         return otherPropsAreEqual && !seriesColorsChanged;
     }
 
@@ -267,12 +268,12 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
      * Parse the filter date range from the dataView
      */
     private parseDatesFromPowerBi(dataView: powerbi.DataView, hasDataChanged: boolean) {
-        const objects: any = ldget(dataView, "metadata.objects", undefined);
+        const objects: any = get(dataView, "metadata.objects", undefined);
         let filterStartDate;
         let filterEndDate;
         let dataSourceChanged = hasDataChanged;
 
-        const objFilter = ldget(objects, "general.filter", undefined);
+        const objFilter = get(objects, "general.filter", undefined);
         if (objFilter) {
 
             const appliedFilter = filter.FilterManager.restoreFilter(objFilter) as models.AdvancedFilter;
@@ -293,7 +294,7 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
 
             // Attempt legacy load
             if (!filterStartDate && !filterEndDate) {
-                const legacyConditions = ldget(objects, "general.filter.whereItems[0].condition", undefined);
+                const legacyConditions = get(objects, "general.filter.whereItems[0].condition", undefined);
                 if (legacyConditions && legacyConditions.upper && legacyConditions.lower) {
                     filterStartDate = (legacyConditions.lower).value;
                     filterEndDate = (legacyConditions.upper).value;
@@ -403,7 +404,7 @@ function hasColorSettingsChanged(state: TimeBrushState, newState: TimeBrushState
             const newSeriesColors = newState.seriesColors || [];
             const mapper = (n: any, i: number) => ({ name: n.name, color: n.color, id: (n.identity && n.identity.key) || i });
             return oldSeriesColors.length !== newSeriesColors.length ||
-                !_.isEqual(oldSeriesColors.map(mapper), newSeriesColors.map(mapper));
+                !isEqual(oldSeriesColors.map(mapper), newSeriesColors.map(mapper));
         }
         return changed;
     }

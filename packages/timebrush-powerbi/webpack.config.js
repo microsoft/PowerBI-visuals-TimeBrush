@@ -56,11 +56,6 @@ const config = module.exports = {
             {
                 test: /\.ts$/,
                 loader: 'ts-loader'
-            },
-            {
-                test: /lodash\.js/,
-                loader: 'imports-loader?define=>false',
-                parser: {amd: false},
             }
         ]
     },

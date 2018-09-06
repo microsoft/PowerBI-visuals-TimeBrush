@@ -28,7 +28,7 @@ import { TimeBrushDataItem, AxisPosition, LegendItem } from "./models";
 /* tslint:disable */
 const $ = require("jquery");
 /* tslint:enable */
-import * as _ from "lodash";
+import debounce = require("lodash.debounce");
 import * as d3 from "d3";
 
 const DEBOUNCE_TIME = 1000;
@@ -332,7 +332,7 @@ export class TimeBrush {
         this.yOrigin = this.context.append("line")
             .attr("class", "y-origin-line");
 
-        const brushed = _.debounce(() => {
+        const brushed = debounce(() => {
             const dateRange: any[] = this.brush.empty() ? [] : this.brush.extent();
             this._range = <any>dateRange;
             this.events.raiseEvent("rangeSelected", dateRange);
