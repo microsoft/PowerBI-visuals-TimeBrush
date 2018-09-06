@@ -37,9 +37,9 @@ import TimeBrushState from "./state";
 import * as models from "powerbi-models";
 import * as $ from "jquery";
 import get = require("lodash.get");
-import debounce = require('lodash.debounce');
-import omit = require('lodash.omit');
-import isEqual = require('lodash.isequal');
+import debounce = require("lodash.debounce");
+import omit = require("lodash.omit");
+import isEqual = require("lodash.isequal");
 /* tslint:disable */
 const stringify = require("json-stringify-safe");
 const MY_CSS_MODULE = require("!css!sass!./css/TimeBrushVisual.scss");
