@@ -15,6 +15,7 @@
   "author": "Microsoft",
   "license": "MIT",
   "dependencies": {
+    "@types/lodash.debounce": "^4.0.4",
     "@types/moment": "^2.13.0",
     "d3": "3.5.12",
     "dompurify": "^0.7.4",
