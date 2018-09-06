@@ -178,7 +178,7 @@ export function dataSupportsGradients(dv: powerbi.DataView) {
 
     // We can use gradients on ANY data that has more than one value, otherwise it doesn't make sense
     if (dataSupportsValueSegments(dv)) {
-        return get(dv, v => v.categorical.values.length, 0) > 0;
+        return get(dv, "categorical.values.length", 0) > 0;
     }
     return false;
 }
