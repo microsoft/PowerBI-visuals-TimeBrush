@@ -26,7 +26,7 @@ import DataView = powerbi.DataView;
 import { TimeBrushVisualDataItem, IColorSettings } from "./models";
 import { calculateSegments, get } from "@essex/visual-utils";
 import * as moment from "moment";
-const ldget = require("lodash/get"); // tslint:disable-line
+import get = require("lodash.get");
 
 const MOMENT_FORMATS = [
     moment.ISO_8601,
@@ -151,7 +151,7 @@ export function coerceDate(dateValue: any): Date {
  */
 export function dataSupportsValueSegments(dv: powerbi.DataView) {
     "use strict";
-    return ldget(dv, "categorical.values.length", 0) > 0;
+    return get(dv, "categorical.values.length", 0) > 0;
 }
 
 /**

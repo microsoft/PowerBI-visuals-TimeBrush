@@ -26,17 +26,17 @@ const baseOptions = {"viewport":{"width":489.1571906354515,"height":304.48829431
 
 
 import * as moment from "moment";
-import * as _ from "lodash";
+import cloneDeep = require("lodash.clonedeep");
 export default function dataWithBucketsAndSettings() {
     "use strict";
-    const clonedOptions = <powerbi.extensibility.visual.VisualUpdateOptions><any>_.cloneDeep(baseOptions);
+    const clonedOptions = <powerbi.extensibility.visual.VisualUpdateOptions><any>cloneDeep(baseOptions);
 
     // Wont represent correctly with JSON stringify
     const values = clonedOptions.dataViews[0].categorical.values;
 
     (<any>values)["grouped"] = () => {
         return values.map((n, i) => {
-            const v = _.cloneDeep(n);
+            const v = cloneDeep(n);
             v["name"] = "GROUPED_" + i;
             // v["objects"] = objects[i] as any;
             return v;

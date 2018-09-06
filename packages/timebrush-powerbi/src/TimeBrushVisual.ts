@@ -41,7 +41,7 @@ import * as $ from "jquery";
 /* tslint:disable */
 const stringify = require("json-stringify-safe");
 const MY_CSS_MODULE = require("!css!sass!./css/TimeBrushVisual.scss");
-const ldget = require("lodash/get");
+const get = require("lodash.get");
 /* tslint:enable */
 
 @receiveDimensions
@@ -267,12 +267,12 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
      * Parse the filter date range from the dataView
      */
     private parseDatesFromPowerBi(dataView: powerbi.DataView, hasDataChanged: boolean) {
-        const objects: any = ldget(dataView, "metadata.objects", undefined);
+        const objects: any = get(dataView, "metadata.objects", undefined);
         let filterStartDate;
         let filterEndDate;
         let dataSourceChanged = hasDataChanged;
 
-        const objFilter = ldget(objects, "general.filter", undefined);
+        const objFilter = get(objects, "general.filter", undefined);
         if (objFilter) {
 
             const appliedFilter = filter.FilterManager.restoreFilter(objFilter) as models.AdvancedFilter;
@@ -293,7 +293,7 @@ export default class TimeBrush implements powerbi.extensibility.visual.IVisual {
 
             // Attempt legacy load
             if (!filterStartDate && !filterEndDate) {
-                const legacyConditions = ldget(objects, "general.filter.whereItems[0].condition", undefined);
+                const legacyConditions = get(objects, "general.filter.whereItems[0].condition", undefined);
                 if (legacyConditions && legacyConditions.upper && legacyConditions.lower) {
                     filterStartDate = (legacyConditions.lower).value;
                     filterEndDate = (legacyConditions.upper).value;
